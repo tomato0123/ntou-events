@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="探索海大校園講座、社團與體育活動。">
+  <title>活動探索｜海大活動報名系統</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="海大活動報名系統首頁"><span class="brand-mark" aria-hidden="true">海</span><span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span></a>
+      <nav aria-label="主要導覽"><a class="nav-active" href="#events" aria-current="page">活動探索</a><button class="nav-button" data-account>我的報名</button></nav>
+      <button class="button button-small" data-account>登入 <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-inner">
+        <p class="eyebrow"><span></span> 在海大，讓生活多一點可能</p>
+        <h1 id="hero-title">課堂之外，<br>遇見你的<span>下一份熱愛。</span></h1>
+        <p class="hero-description">從一場講座到一段新的友誼，精彩的校園生活，從這裡開始。</p>
+        <form id="search-form" class="search-form" role="search">
+          <label class="sr-only" for="search">搜尋活動名稱、地點或關鍵字</label>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="搜尋活動名稱、地點或關鍵字" autocomplete="off">
+          <button class="button" type="submit">搜尋活動</button>
+        </form>
+        <p class="hero-note">探索新知・認識夥伴・一起參與</p>
+      </div>
+      <div class="sea-lines" aria-hidden="true"><i></i><i></i><i></i></div>
+    </section>
+    <section id="events" class="events-section" aria-labelledby="events-title">
+      <div class="section-heading"><div><p class="eyebrow">DISCOVER ON CAMPUS</p><h2 id="events-title">探索校園活動</h2></div><span class="sample-label">示範活動資料</span></div>
+      <div class="filter-row"><div id="categories" class="categories" role="group" aria-label="活動分類"><button data-category="全部" aria-pressed="true">全部活動</button><button data-category="學術" aria-pressed="false">學術</button><button data-category="社團" aria-pressed="false">社團</button><button data-category="體育" aria-pressed="false">體育</button><button data-category="其他" aria-pressed="false">其他</button></div><p class="sort-label">依發佈時間・最新優先</p></div>
+      <p id="result-count" class="result-count" role="status" aria-live="polite"></p>
+      <div id="event-grid" class="event-grid"></div>
+      <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>找不到符合的活動</h3><p>試試其他關鍵字，或重新查看全部活動。</p><button id="clear-filters" class="button">清除篩選</button></div>
+      <div class="load-more"><button id="load-more" class="button button-outline">載入更多活動 <span aria-hidden="true">↓</span></button></div>
+      <aside class="campus-note"><span aria-hidden="true">◉</span><div><strong>把一點時間，留給校園生活。</strong><p>挑一場感興趣的活動，讓今天成為新的開始。</p></div><span class="note-signature">MEET. LEARN. EXPLORE.</span></aside>
+    </section>
+  </main>
+  <footer><a class="footer-brand" href="index.html">海大活動報名系統</a><p>國立臺灣海洋大學 · 校園活動探索</p><span>學生專案 · 非官方網站</span></footer>
+  <dialog id="event-dialog" aria-labelledby="dialog-title"><div class="dialog-content"><button class="close-button" id="close-dialog" aria-label="關閉視窗">×</button><p id="dialog-category" class="eyebrow"></p><h2 id="dialog-title"></h2><div id="dialog-body"></div></div></dialog>
+</body>
+</html>
