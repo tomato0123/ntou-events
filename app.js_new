@@ -1,4 +1,3 @@
-// 狀態管理
 const state = { category: '全部', query: '', visible: 6, allEvents: [] };
 const grid = document.querySelector('#event-grid');
 const search = document.querySelector('#search');
