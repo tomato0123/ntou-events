@@ -1,2 +1,833 @@
-:root{--navy:#173b4a;--teal:#247668;--muted:#6b797e;--line:#e1e7e6;--paper:#fafbf9;--font:"Noto Sans TC","Microsoft JhengHei",sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--navy);font-family:var(--font);line-height:1.65}button,input{font:inherit}button,a,input{-webkit-tap-highlight-color:transparent}button{cursor:pointer}a{color:inherit;text-decoration:none}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #bd861e;outline-offset:4px}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.skip-link{position:absolute;left:12px;top:-100px;z-index:10;background:white;padding:12px}.skip-link:focus{top:10px}.site-header{background:#fff;border-bottom:1px solid var(--line)}.header-inner{max-width:1180px;min-height:94px;margin:auto;display:flex;align-items:center;gap:46px;padding:16px 32px}.brand{display:flex;align-items:center;gap:12px;font-size:17px;font-weight:700;letter-spacing:.03em}.brand-mark{display:grid;place-items:center;width:44px;height:44px;background:var(--navy);color:white;border-radius:12px 12px 12px 3px;font-size:23px}.brand small{display:block;font-size:9px;letter-spacing:.19em;color:var(--muted);margin-top:2px}nav{display:flex;gap:30px;margin-left:auto;align-items:center;font-size:14px}.nav-active{color:var(--teal);font-weight:700}.nav-button{border:0;background:none;color:var(--muted);padding:8px 0}.button{background:var(--navy);color:white;border:1px solid var(--navy);border-radius:7px;padding:12px 22px;font-size:14px;font-weight:600;transition:background .15s}.button:hover{background:#28566a}.button-small{padding:8px 19px}.button-small span{margin-left:10px}.hero{position:relative;overflow:hidden;background:#edf3ef;border-bottom:1px solid #e1e9e3}.hero-inner{max-width:1180px;margin:auto;padding:65px 32px 43px;position:relative;z-index:1}.eyebrow{font-size:11px;letter-spacing:.15em;font-weight:700;color:var(--teal);margin:0 0 16px}.hero .eyebrow{font-size:12px;letter-spacing:.12em;display:flex;align-items:center;gap:9px}.eyebrow span{width:7px;height:7px;background:var(--teal);border-radius:50%}h1{font-size:46px;line-height:1.45;letter-spacing:.04em;margin:0;font-weight:700}h1 span{color:var(--teal)}.hero-description{font-size:14px;color:#526c70;margin:20px 0 28px}.search-form{display:flex;align-items:center;gap:12px;background:white;border:1px solid #d5e0da;padding:7px;border-radius:10px;max-width:660px;box-shadow:0 7px 25px #173b4a06}.search-icon{font-size:30px;margin-left:12px;color:var(--muted);line-height:1}.search-form input{width:100%;min-width:0;border:0;background:transparent;padding:10px 0;font-size:14px;color:var(--navy)}.search-form input::placeholder{color:#7d898d}.search-form .button{white-space:nowrap}.hero-note{font-size:11px;letter-spacing:.1em;color:#687d78;margin:16px 0 0}.sea-lines{position:absolute;width:650px;height:650px;right:-160px;top:-100px;transform:rotate(-28deg);opacity:.5}.sea-lines i{position:absolute;border:1px solid #b3cfc4;width:100%;height:100%;border-radius:45%}.sea-lines i:nth-child(2){inset:45px;width:86%;height:86%}.sea-lines i:nth-child(3){inset:90px;width:72%;height:72%}.events-section{max-width:1180px;margin:auto;padding:48px 32px 52px;scroll-margin-top:24px}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.section-heading .eyebrow{margin-bottom:4px;font-size:10px}h2{font-size:26px;letter-spacing:.02em;margin:0}.sample-label{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 10px;border-radius:4px}.filter-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:26px;padding-bottom:20px;border-bottom:1px solid var(--line)}.categories{display:flex;gap:8px;flex-wrap:wrap}.categories button{border:1px solid transparent;border-radius:6px;padding:7px 19px;color:#607176;background:transparent;font-size:13px}.categories button:hover{background:#eaf0ec}.categories button[aria-pressed=true]{background:var(--navy);color:white}.sort-label{font-size:11px;color:var(--muted);white-space:nowrap}.result-count{font-size:12px;color:var(--muted);margin:20px 0 16px}.event-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.event-card{background:white;border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column;min-height:300px;transition:border-color .15s,transform .15s}.event-card:hover{border-color:#a9c3b8;transform:translateY(-2px)}.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:21px}.category-badge{font-size:11px;background:#eaf2ee;color:#327360;border-radius:4px;padding:3px 9px}.category-badge[data-category=社團]{background:#f5eee3;color:#85652b}.category-badge[data-category=體育]{background:#eaf0f6;color:#486c8c}.category-badge[data-category=其他]{background:#eeecf6;color:#6c5a87}.event-status{font-size:11px;color:var(--teal)}.event-status.closed{color:#7a8184}.event-card h3{font-size:18px;line-height:1.6;margin:0 0 8px}.event-description{font-size:12px;color:var(--muted);margin:0 0 20px}.event-meta{font-size:12px;color:#52676f;margin-top:auto;display:grid;gap:7px}.meta-row{display:flex;gap:9px;align-items:baseline}.meta-icon{color:#899c9d;width:14px;text-align:center}.card-bottom{margin-top:22px;padding-top:15px;border-top:1px solid #edf0ee;display:flex;align-items:center;justify-content:space-between;gap:12px}.seats{font-size:11px;color:var(--muted)}.details-button{border:0;background:none;color:var(--navy);font-size:12px;font-weight:700;padding:5px 0}.details-button span{margin-left:10px}.load-more{text-align:center;margin:30px 0 44px}.button-outline{color:var(--navy);background:transparent;border-color:#cad5d3;padding:10px 25px}.button-outline:hover{background:#edf3ef}.button-outline span{margin-left:14px}.campus-note{display:flex;align-items:center;gap:20px;padding:25px 28px;background:#edf2ee;border-radius:8px}.campus-note>span:first-child{font-size:26px;color:var(--teal)}.campus-note strong{font-size:14px;font-weight:600}.campus-note p{margin:3px 0 0;font-size:12px;color:var(--muted)}.note-signature{margin-left:auto;font-size:9px;letter-spacing:.15em;color:#688779}footer{max-width:1116px;margin:auto;border-top:1px solid var(--line);padding:24px 0 30px;display:flex;align-items:center;gap:22px;font-size:11px;color:var(--muted)}.footer-brand{font-size:13px;font-weight:700;color:var(--navy)}footer p{margin:0}footer>span{margin-left:auto}.empty-state{text-align:center;padding:55px 16px}.empty-state>span{font-size:44px;color:var(--teal)}.empty-state h3{margin:0}.empty-state p{color:var(--muted);font-size:14px}dialog{border:1px solid var(--line);border-radius:14px;padding:0;width:calc(100% - 32px);max-width:560px;color:var(--navy);max-height:85vh}dialog::backdrop{background:#12303f88}.dialog-content{padding:36px;position:relative}.close-button{position:absolute;right:14px;top:10px;border:0;background:transparent;font-size:28px;color:var(--muted);width:36px;height:36px}.dialog-content h2{padding-right:15px;font-size:23px}.dialog-content dl{display:grid;grid-template-columns:75px 1fr;font-size:14px;gap:12px;margin:24px 0}.dialog-content dt{color:var(--muted)}.dialog-content dd{margin:0}.dialog-description{font-size:14px;line-height:1.9}.dialog-notice{padding:14px;background:#edf3ef;font-size:12px;border-radius:6px;color:#506b61}
-@media(min-width:1500px){.hero-inner{padding-top:78px;padding-bottom:56px}}@media(max-width:900px){.event-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.header-inner{gap:24px}nav{gap:20px}.sea-lines{right:-400px}footer{margin:0 32px;flex-wrap:wrap}.note-signature{display:none}}@media(max-width:600px){.header-inner{padding:15px 20px;gap:14px;flex-wrap:wrap;min-height:auto}.brand{font-size:14px}.brand-mark{width:36px;height:36px;font-size:20px}.brand small{font-size:8px}.header-inner>.button{margin-left:auto;padding:7px 12px}.header-inner nav{order:3;width:100%;margin:0;gap:26px;font-size:12px;border-top:1px solid #eef1ef;padding-top:9px}.hero-inner{padding:36px 20px 30px}h1{font-size:31px}.hero-description{font-size:13px;max-width:290px}.hero .eyebrow{font-size:10px}.search-form{gap:7px}.search-form input{font-size:12px}.search-form .button{padding:11px 12px;font-size:12px}.search-icon{margin-left:4px}.sea-lines{opacity:.25}.events-section{padding:32px 20px}h2{font-size:22px}.sample-label{font-size:10px}.filter-row{align-items:flex-start;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:14px}.categories{gap:4px}.categories button{padding:7px 13px;font-size:12px}.sort-label{margin:0}.event-grid{grid-template-columns:1fr;gap:14px}.event-card{min-height:275px;padding:22px}.campus-note{padding:20px 16px;gap:14px}.campus-note strong{font-size:13px}.campus-note p{font-size:11px}footer{margin:0 20px;gap:8px 16px}footer>span{margin-left:0;width:100%}.dialog-content{padding:32px 23px}.dialog-content dl{grid-template-columns:65px 1fr;gap:10px}}
+/* ==========================================
+   1. 變數與全域設定 (Variables & Reset)
+   ========================================== */
+:root {
+  --navy: #173b4a;
+  --teal: #247668;
+  --muted: #6b797e;
+  --line: #e1e7e6;
+  --paper: #fafbf9;
+  --font: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--navy);
+  font-family: var(--font);
+  line-height: 1.65;
+}
+
+button, input {
+  font: inherit;
+}
+
+button, a, input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid #bd861e;
+  outline-offset: 4px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 10;
+  background: white;
+  padding: 12px;
+}
+
+.skip-link:focus {
+  top: 10px;
+}
+
+
+/* ==========================================
+   2. 導覽列 (Header & Navigation)
+   ========================================== */
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  max-width: 1180px;
+  min-height: 94px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 46px;
+  padding: 16px 32px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: var(--navy);
+  color: white;
+  border-radius: 12px 12px 12px 3px;
+  font-size: 23px;
+}
+
+.brand small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .19em;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+nav {
+  display: flex;
+  gap: 30px;
+  margin-left: auto;
+  align-items: center;
+  font-size: 14px;
+}
+
+.nav-active {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.nav-button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+
+/* ==========================================
+   3. 共用按鈕樣式 (Buttons)
+   ========================================== */
+.button {
+  background: var(--navy);
+  color: white;
+  border: 1px solid var(--navy);
+  border-radius: 7px;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background .15s;
+}
+
+.button:hover {
+  background: #28566a;
+}
+
+.button-small {
+  padding: 8px 19px;
+}
+
+.button-small span {
+  margin-left: 10px;
+}
+
+.button-outline {
+  color: var(--navy);
+  background: transparent;
+  border-color: #cad5d3;
+  padding: 10px 25px;
+}
+
+.button-outline:hover {
+  background: #edf3ef;
+}
+
+.button-outline span {
+  margin-left: 14px;
+}
+
+
+/* ==========================================
+   4. 英雄區塊 (Hero Section & Search)
+   ========================================== */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: #edf3ef;
+  border-bottom: 1px solid #e1e9e3;
+}
+
+.hero-inner {
+  max-width: 1180px;
+  margin: auto;
+  padding: 65px 32px 43px;
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .15em;
+  font-weight: 700;
+  color: var(--teal);
+  margin: 0 0 16px;
+}
+
+.hero .eyebrow {
+  font-size: 12px;
+  letter-spacing: .12em;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.eyebrow span {
+  width: 7px;
+  height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+}
+
+h1 {
+  font-size: 46px;
+  line-height: 1.45;
+  letter-spacing: .04em;
+  margin: 0;
+  font-weight: 700;
+}
+
+h1 span {
+  color: var(--teal);
+}
+
+.hero-description {
+  font-size: 14px;
+  color: #526c70;
+  margin: 20px 0 28px;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 1px solid #d5e0da;
+  padding: 7px;
+  border-radius: 10px;
+  max-width: 660px;
+  box-shadow: 0 7px 25px #173b4a06;
+}
+
+.search-icon {
+  font-size: 30px;
+  margin-left: 12px;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.search-form input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--navy);
+}
+
+.search-form input::placeholder {
+  color: #7d898d;
+}
+
+.search-form .button {
+  white-space: nowrap;
+}
+
+.hero-note {
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: #687d78;
+  margin: 16px 0 0;
+}
+
+.sea-lines {
+  position: absolute;
+  width: 650px;
+  height: 650px;
+  right: -160px;
+  top: -100px;
+  transform: rotate(-28deg);
+  opacity: .5;
+}
+
+.sea-lines i {
+  position: absolute;
+  border: 1px solid #b3cfc4;
+  width: 100%;
+  height: 100%;
+  border-radius: 45%;
+}
+
+.sea-lines i:nth-child(2) {
+  inset: 45px;
+  width: 86%;
+  height: 86%;
+}
+
+.sea-lines i:nth-child(3) {
+  inset: 90px;
+  width: 72%;
+  height: 72%;
+}
+
+
+/* ==========================================
+   5. 活動列表區塊 (Events Section)
+   ========================================== */
+.events-section {
+  max-width: 1180px;
+  margin: auto;
+  padding: 48px 32px 52px;
+  scroll-margin-top: 24px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-heading .eyebrow {
+  margin-bottom: 4px;
+  font-size: 10px;
+}
+
+h2 {
+  font-size: 26px;
+  letter-spacing: .02em;
+  margin: 0;
+}
+
+.sample-label {
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 26px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.categories {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.categories button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 7px 19px;
+  color: #607176;
+  background: transparent;
+  font-size: 13px;
+}
+
+.categories button:hover {
+  background: #eaf0ec;
+}
+
+.categories button[aria-pressed=true] {
+  background: var(--navy);
+  color: white;
+}
+
+.sort-label {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.result-count {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 20px 0 16px;
+}
+
+
+/* ==========================================
+   6. 活動卡片 (Event Cards)
+   ========================================== */
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.event-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+  transition: border-color .15s, transform .15s;
+}
+
+.event-card:hover {
+  border-color: #a9c3b8;
+  transform: translateY(-2px);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 21px;
+}
+
+.category-badge {
+  font-size: 11px;
+  background: #eaf2ee;
+  color: #327360;
+  border-radius: 4px;
+  padding: 3px 9px;
+}
+
+.category-badge[data-category=社團] {
+  background: #f5eee3;
+  color: #85652b;
+}
+
+.category-badge[data-category=體育] {
+  background: #eaf0f6;
+  color: #486c8c;
+}
+
+.category-badge[data-category=其他] {
+  background: #eeecf6;
+  color: #6c5a87;
+}
+
+.event-status {
+  font-size: 11px;
+  color: var(--teal);
+}
+
+.event-status.closed {
+  color: #7a8184;
+}
+
+.event-card h3 {
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.event-description {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+
+.event-meta {
+  font-size: 12px;
+  color: #52676f;
+  margin-top: auto;
+  display: grid;
+  gap: 7px;
+}
+
+.meta-row {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+}
+
+.meta-icon {
+  color: #899c9d;
+  width: 14px;
+  text-align: center;
+}
+
+.card-bottom {
+  margin-top: 22px;
+  padding-top: 15px;
+  border-top: 1px solid #edf0ee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.seats {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.details-button {
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 0;
+}
+
+.details-button span {
+  margin-left: 10px;
+}
+
+.load-more {
+  text-align: center;
+  margin: 30px 0 44px;
+}
+
+
+/* ==========================================
+   7. 其他與頁尾 (Campus Note & Footer)
+   ========================================== */
+.campus-note {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 25px 28px;
+  background: #edf2ee;
+  border-radius: 8px;
+}
+
+.campus-note>span:first-child {
+  font-size: 26px;
+  color: var(--teal);
+}
+
+.campus-note strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.campus-note p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.note-signature {
+  margin-left: auto;
+  font-size: 9px;
+  letter-spacing: .15em;
+  color: #688779;
+}
+
+footer {
+  max-width: 1116px;
+  margin: auto;
+  border-top: 1px solid var(--line);
+  padding: 24px 0 30px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.footer-brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+footer p {
+  margin: 0;
+}
+
+footer>span {
+  margin-left: auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 55px 16px;
+}
+
+.empty-state>span {
+  font-size: 44px;
+  color: var(--teal);
+}
+
+.empty-state h3 {
+  margin: 0;
+}
+
+.empty-state p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+
+/* ==========================================
+   8. 彈跳視窗 (Dialog Modal)
+   ========================================== */
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0;
+  width: calc(100% - 32px);
+  max-width: 560px;
+  color: var(--navy);
+  max-height: 85vh;
+}
+
+dialog::backdrop {
+  background: #12303f88;
+}
+
+.dialog-content {
+  padding: 36px;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 28px;
+  color: var(--muted);
+  width: 36px;
+  height: 36px;
+}
+
+.dialog-content h2 {
+  padding-right: 15px;
+  font-size: 23px;
+}
+
+.dialog-content dl {
+  display: grid;
+  grid-template-columns: 75px 1fr;
+  font-size: 14px;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.dialog-content dt {
+  color: var(--muted);
+}
+
+.dialog-content dd {
+  margin: 0;
+}
+
+.dialog-description {
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.dialog-notice {
+  padding: 14px;
+  background: #edf3ef;
+  font-size: 12px;
+  border-radius: 6px;
+  color: #506b61;
+}
+
+
+/* ==========================================
+   9. 響應式設計 (RWD Media Queries)
+   ========================================== */
+@media (min-width: 1500px) {
+  .hero-inner {
+    padding-top: 78px;
+    padding-bottom: 56px;
+  }
+}
+
+@media (max-width: 900px) {
+  .event-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .header-inner {
+    gap: 24px;
+  }
+  nav {
+    gap: 20px;
+  }
+  .sea-lines {
+    right: -400px;
+  }
+  footer {
+    margin: 0 32px;
+    flex-wrap: wrap;
+  }
+  .note-signature {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .header-inner {
+    padding: 15px 20px;
+    gap: 14px;
+    flex-wrap: wrap;
+    min-height: auto;
+  }
+  .brand {
+    font-size: 14px;
+  }
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+  .brand small {
+    font-size: 8px;
+  }
+  .header-inner>.button {
+    margin-left: auto;
+    padding: 7px 12px;
+  }
+  .header-inner nav {
+    order: 3;
+    width: 100%;
+    margin: 0;
+    gap: 26px;
+    font-size: 12px;
+    border-top: 1px solid #eef1ef;
+    padding-top: 9px;
+  }
+  .hero-inner {
+    padding: 36px 20px 30px;
+  }
+  h1 {
+    font-size: 31px;
+  }
+  .hero-description {
+    font-size: 13px;
+    max-width: 290px;
+  }
+  .hero .eyebrow {
+    font-size: 10px;
+  }
+  .search-form {
+    gap: 7px;
+  }
+  .search-form input {
+    font-size: 12px;
+  }
+  .search-form .button {
+    padding: 11px 12px;
+    font-size: 12px;
+  }
+  .search-icon {
+    margin-left: 4px;
+  }
+  .sea-lines {
+    opacity: .25;
+  }
+  .events-section {
+    padding: 32px 20px;
+  }
+  h2 {
+    font-size: 22px;
+  }
+  .sample-label {
+    font-size: 10px;
+  }
+  .filter-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+    padding-bottom: 14px;
+  }
+  .categories {
+    gap: 4px;
+  }
+  .categories button {
+    padding: 7px 13px;
+    font-size: 12px;
+  }
+  .sort-label {
+    margin: 0;
+  }
+  .event-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .event-card {
+    min-height: 275px;
+    padding: 22px;
+  }
+  .campus-note {
+    padding: 20px 16px;
+    gap: 14px;
+  }
+  .campus-note strong {
+    font-size: 13px;
+  }
+  .campus-note p {
+    font-size: 11px;
+  }
+  footer {
+    margin: 0 20px;
+    gap: 8px 16px;
+  }
+  footer>span {
+    margin-left: 0;
+    width: 100%;
+  }
+  .dialog-content {
+    padding: 32px 23px;
+  }
+  .dialog-content dl {
+    grid-template-columns: 65px 1fr;
+    gap: 10px;
+  }
+}
