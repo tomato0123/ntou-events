@@ -49,6 +49,26 @@
 
 ## 資料庫
 
-`database/inspect_schema.sql` 用來查詢現有資料表的欄位與限制，並不是建立資料表的腳本。
+本專案使用 PostgreSQL。
 
-下載本專案不會自動取得資料庫或其中的資料。
+### 第一次建立資料庫
+
+1. 在 pgAdmin 建立空白資料庫，命名為 `ntou_events`。
+2. 對該資料庫開啟 Query Tool。
+3. 開啟 `database/schema.sql`，執行全部內容。
+4. 將 `server/.env.example` 複製為 `server/.env`，
+   填入自己的資料庫連線設定。
+
+`schema.sql` 會建立 users、events、registrations 三張表，
+不包含測試資料。已有這些資料表的資料庫請勿重複執行。
+
+### 檢查現有結構
+
+`database/inspect_schema.sql` 用來查詢既有資料表的欄位、
+限制與索引，不會建立資料表。
+
+下載本專案不會自動建立資料庫，也不會取得其他人的資料。
+
+### 目前限制
+
+尚未建立防止「同一使用者重複有效報名同一活動」的唯一索引。
