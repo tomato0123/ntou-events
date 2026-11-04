@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>我的活動｜海大活動報名系統</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="my-activities.css">
+  <script src="my-activities.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+  <header class="site-header"><div class="header-inner">
+    <a class="brand" href="index.html" aria-label="海大活動報名系統首頁"><span class="brand-mark" aria-hidden="true">海</span><span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span></a>
+    <nav aria-label="主要導覽"><a href="index.html#events">活動探索</a><a class="nav-active" href="my-activities.html" aria-current="page">我的報名</a></nav>
+  </div></header>
+  <main id="main">
+    <section class="hero"><div class="hero-inner">
+      <p class="eyebrow">MY CAMPUS LIFE</p>
+      <h1>把期待，<br>留給<span>下一場相遇。</span></h1>
+      <p class="hero-description">在這裡查看你的報名紀錄，安排接下來的校園生活。</p>
+      <a class="explore-link" href="index.html#events">探索更多活動 ↗</a>
+    </div><div class="sea-lines" aria-hidden="true"><i></i><i></i><i></i></div></section>
+    <section class="events-section" aria-labelledby="records-title">
+      <p id="test-notice" class="test-notice" hidden></p>
+      <div class="section-heading"><div><p class="eyebrow">YOUR REGISTRATIONS</p><h2 id="records-title">我的活動</h2></div><span class="sample-label">報名紀錄</span></div>
+      <div class="filter-row"><div class="categories" id="record-filters" role="group" aria-label="報名狀態篩選">
+        <button type="button" data-status="all" aria-pressed="true">全部紀錄</button>
+        <button type="button" data-status="registered" aria-pressed="false">已報名</button>
+        <button type="button" data-status="cancelled" aria-pressed="false">已取消</button>
+      </div><p class="sort-label">依報名時間・最新優先</p></div>
+      <p id="feedback" role="status" aria-live="polite" class="result-count"></p>
+      <div id="records-area" aria-busy="true">
+        <div id="records-state" class="empty-state"><h3 id="state-title">正在載入報名紀錄…</h3><p id="state-description">請稍候。</p><button id="retry" class="button" hidden>重新載入</button></div>
+        <div id="records-grid" class="event-grid"></div>
+      </div>
+      <aside class="campus-note history-note"><span aria-hidden="true">◷</span><div><strong>實際參與歷史 · 尚未開放</strong><p>報名紀錄不代表出席紀錄。待出席登記功能開放後，這裡才會提供實際參與歷史。</p></div></aside>
+    </section>
+  </main>
+  <footer><a class="footer-brand" href="index.html">海大活動報名系統</a><p>國立臺灣海洋大學 · 校園活動探索</p><span>學生專案 · 非官方網站</span></footer>
+  <dialog id="cancel-dialog" aria-labelledby="cancel-title" aria-describedby="cancel-description"><div class="dialog-content">
+    <p class="eyebrow">MANAGE YOUR REGISTRATION</p><h2 id="cancel-title">確認取消報名？</h2>
+    <p id="cancel-description" class="dialog-description"></p>
+    <p class="dialog-notice">取消後會保留這筆紀錄並標示「已取消」。若想再次參加，需另行重新報名。</p>
+    <p id="cancel-error" role="alert" class="cancel-error"></p>
+    <div class="dialog-actions"><button id="keep-registration" class="button button-outline" autofocus>保留報名</button><button id="confirm-cancel" class="button">確認取消報名</button></div>
+  </div></dialog>
+</body>
+</html>

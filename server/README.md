@@ -1,5 +1,7 @@
 # 海大活動報名系統後端
 
+UI-04 我的活動、查詢與取消 API 的本機測試模式及驗收方式，請參考 [UI-04 說明](UI-04.md)。
+
 使用 Node.js、Express 與 PostgreSQL。
 
 ## 第一次使用
@@ -53,9 +55,9 @@ node --env-file=.env registrations-check.js
 
 尚未完成：
 - 串接登入驗證，取得目前登入者的使用者編號。
-- 建立 GET /api/users/me/registrations API。
-- 串接前端畫面。
+
+UI-04 分支已加入 GET /api/users/me/registrations、取消 API 與前端畫面；目前僅提供明確啟用的本機測試身分，資料庫整合仍需依 UI-04.md 驗收。
 
 正式 API 的使用者編號必須從後端驗證過的登入資訊取得，不能直接相信前端傳入的編號。
 
-本功能是「查看紀錄」；取消報名的 API 是另一項功能。
+原 registration-check 測試是「查看紀錄」；UI-04 的取消流程及測試方式請見 UI-04.md。
