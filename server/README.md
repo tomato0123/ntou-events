@@ -1,61 +1,73 @@
 # 海大活動報名系統後端
 
-使用 Node.js、Express 與 PostgreSQL。
+使用 Node.js、Express 與 PostgreSQL，API Base URL 為 `http://127.0.0.1:8000/api`。
 
 ## 第一次使用
 
-在終端機進入 server 資料夾，安裝套件：
+在 `server/` 安裝套件：
 
 ```powershell
 npm.cmd install
 ```
 
-將 `.env.example` 複製一份，命名為 `.env`，填入自己電腦的資料庫連線設定。
+將 `.env.example` 複製為 `.env`，設定 PostgreSQL 連線資料及 `JWT_SECRET`。`.env` 含密碼與密鑰，不可提交至 Git。
 
-注意：
-- `.env` 包含資料庫密碼，不要上傳 GitHub。
-- 需要先準備 PostgreSQL 資料庫及資料表。
-- 下載專案不會自動建立資料庫，也不會取得其他人的資料庫資料。
+新資料庫請執行 `database/schema.sql`。既有資料庫若尚未建立防重複報名索引，請先備份，再執行 `database/add_registrations_one_active.sql`；若已有重複有效報名，腳本會停止且不會自行刪除資料。
 
-## 檢查資料庫連線
+## 啟動與測試
 
 ```powershell
-node --env-file=.env db-check.js
+npm.cmd test
+npm.cmd start
 ```
 
-## 啟動後端
+健康檢查：`GET http://127.0.0.1:8000/api/health`
 
-```powershell
-node --env-file=.env index.js
+## US-03：活動報名與結果確認
+
+以下 API 都從 JWT Bearer Token 取得登入者編號，不接受前端傳入 `user_id`。JWT payload 可使用 `sub`、`id` 或 `user_id` 保存正整數使用者編號，簽章演算法為 HS256。
+
+### 報名活動
+
+```http
+POST /api/events/101/register
+Authorization: Bearer <jwt>
 ```
 
-開啟 http://127.0.0.1:8000/api/health 檢查是否正常運作。
+成功回傳 `201 Created`：
 
-## US-05：查看自己的報名與取消紀錄
-
-目前已完成：
-- 依使用者編號查詢報名紀錄。
-- 回傳相關活動資訊。
-- 包含 registered 與 cancelled 狀態。
-- 沒有紀錄時回傳 {"data":[]}。
-
-相關檔案：
-- registration-service.js：查詢資料庫的功能。
-- registrations-check.js：本機測試程式。
-
-執行本機測試：
-
-```powershell
-node --env-file=.env registrations-check.js
+```json
+{
+  "message": "報名成功",
+  "data": {
+    "id": 5001,
+    "user_id": 1,
+    "event_id": 101,
+    "status": "registered",
+    "registered_at": "2026-10-21T12:30:00.000Z"
+  }
+}
 ```
 
-測試程式目前使用固定的使用者編號，請依自己的測試資料調整。
+同一使用者對同一活動只能有一筆 `registered` 紀錄；重複報名回傳 `409`。取消紀錄不受唯一索引限制，因此取消後可新增一筆報名並保留原紀錄。
 
-尚未完成：
-- 串接登入驗證，取得目前登入者的使用者編號。
-- 建立 GET /api/users/me/registrations API。
-- 串接前端畫面。
+### 查看自己的報名結果與歷程
 
-正式 API 的使用者編號必須從後端驗證過的登入資訊取得，不能直接相信前端傳入的編號。
+```http
+GET /api/users/me/registrations
+Authorization: Bearer <jwt>
+```
 
-本功能是「查看紀錄」；取消報名的 API 是另一項功能。
+回傳內容同時包含 `registered` 與 `cancelled`，並依 `registered_at DESC, id DESC` 排序。沒有紀錄時回傳：
+
+```json
+{ "data": [] }
+```
+
+所有錯誤統一為：
+
+```json
+{ "error": "錯誤原因描述" }
+```
+
+本實作依據團隊的資料庫與 API 規格，不包含尚未存在於資料表的名額、候補或取消時間欄位。

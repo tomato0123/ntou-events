@@ -56,4 +56,10 @@ CREATE TABLE public.registrations (
         CHECK (status IN ('registered', 'cancelled'))
 );
 
+-- 同一名使用者在同一活動最多只能有一筆有效報名。
+-- cancelled 不在索引範圍內，因此取消後可新增一筆報名並保留舊紀錄。
+CREATE UNIQUE INDEX registrations_one_active
+    ON public.registrations (user_id, event_id)
+    WHERE status = 'registered';
+
 COMMIT;
