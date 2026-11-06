@@ -1,55 +1,57 @@
--- 海大活動報名系統 資料表建置腳本 (PostgreSQL)
--- 適用於 pgAdmin 或 psql 執行
+-- 海大活動報名系統：初始資料表
+-- 使用方式：
+-- 1. 先建立一個空白的 ntou_events 資料庫。
+-- 2. 在該資料庫中執行本檔案。
+-- 本檔案只建立結構，不包含使用者、活動或報名資料。
+-- 已有同名資料表的資料庫請勿重複執行。
 
--- 1. 使用者資料表 (users)
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL DEFAULT 'user', -- 'user', 'event_manager', 'admin'
-    campus_identity VARCHAR(50) NOT NULL,     -- '學生', '教職員', '校友'
+BEGIN;
+
+-- 使用者
+CREATE TABLE public.users (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100),
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    campus_identity VARCHAR(20),
     gender VARCHAR(20),
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    email VARCHAR(100) NOT NULL,
+    password_hash TEXT,
+
+    CONSTRAINT users_email_unique UNIQUE (email),
+    CONSTRAINT users_role_check
+        CHECK (role IN ('user', 'event_manager', 'admin')),
+    CONSTRAINT users_campus_identity_check
+        CHECK (campus_identity IN ('student', 'teacher', 'staff'))
 );
 
--- 2. 活動資料表 (events)
-CREATE TABLE IF NOT EXISTS events (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
+-- 活動
+CREATE TABLE public.events (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    starts_at TIMESTAMPTZ NOT NULL,
-    ends_at TIMESTAMPTZ NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    location VARCHAR(200) NOT NULL,
+    starts_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT events_time_valid
+        CHECK (ends_at > starts_at)
 );
 
--- 3. 報名紀錄資料表 (registrations)
-CREATE TABLE IF NOT EXISTS registrations (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    status VARCHAR(50) NOT NULL DEFAULT 'registered', -- 'registered', 'cancelled'
-    registered_at TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT unique_user_event_registration UNIQUE (user_id, event_id)
+-- 報名紀錄
+CREATE TABLE public.registrations (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'registered',
+    registered_at TIMESTAMP WITH TIME ZONE NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT registrations_user_id_fkey
+        FOREIGN KEY (user_id) REFERENCES public.users (id),
+    CONSTRAINT registrations_event_id_fkey
+        FOREIGN KEY (event_id) REFERENCES public.events (id),
+    CONSTRAINT registrations_status_check
+        CHECK (status IN ('registered', 'cancelled'))
 );
-
--- 建立索引加速查詢
-CREATE INDEX IF NOT EXISTS idx_events_starts_at ON events(starts_at);
-CREATE INDEX IF NOT EXISTS idx_registrations_user_id ON registrations(user_id);
-CREATE INDEX IF NOT EXISTS idx_registrations_event_id ON registrations(event_id);
-
--- 初始測試資料 (種子資料)
-INSERT INTO users (name, email, password_hash, role, campus_identity, gender)
-VALUES
-('系統管理員', 'admin@campus.edu.tw', 'dummy_hash', 'admin', '教職員', '男'),
-('活動主辦者', 'manager@campus.edu.tw', 'dummy_hash', 'event_manager', '教職員', '女'),
-('王小明', 'ming@campus.edu.tw', 'dummy_hash', 'user', '學生', '男')
-ON CONFLICT (email) DO NOTHING;
-
-INSERT INTO events (title, description, location, starts_at, ends_at)
-VALUES
-('校園春季音樂祭', '一年一度的草地音樂節，歡迎全校師生參與。', '大禮堂前廣場', '2026-11-20T18:00:00Z', '2026-11-20T21:30:00Z'),
-('AI 實戰工作坊', '帶你從零打造校園聊天機器人。', '資訊大樓 302 教室', '2026-12-01T13:30:00Z', '2026-12-01T16:30:00Z')
-ON CONFLICT DO NOTHING;
-
