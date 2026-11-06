@@ -72,3 +72,31 @@
 ### 目前限制
 
 尚未建立防止「同一使用者重複有效報名同一活動」的唯一索引。
+
+
+## US-03：活動報名與結果確認 API
+
+本分支新增的完整後端原始碼位於 [backend/](./backend/README.md)，API 請求與回應格式見 [backend/API.md](./backend/API.md)。
+
+這是獨立的 **Node.js + SQLite** 實作，與既有 `server/`（Express + PostgreSQL）分開執行；兩者目前不共用帳號、登入狀態或資料庫，也尚未連接主頁原型。
+
+使用 Node.js 24.12 以上的 24.x 版本，在專案根目錄執行：
+
+```sh
+cd backend
+npm run seed
+npm start
+```
+
+API 預設位址為 `http://127.0.0.1:3000`，健康檢查為 `GET /api/health`。不需安裝第三方套件。另一個終端機可在 `backend/` 執行 `npm test` 或 `npm run example`。
+
+包含：
+
+- 註冊、登入、登出，以及本人資料查詢。
+- 活動列表、詳情、搜尋及分頁。
+- 活動報名、正取／候補結果確認、候補順位查詢。
+- 本人報名紀錄、取消報名，以及取消後按順序自動遞補。
+- SQLite 交易與有效報名唯一索引，避免超收與重複報名。
+- 21 項測試，涵蓋 HTTP 權限檢查、取消／遞補、資料持久化與多資料庫連線同時報名。
+
+範例設定見 `backend/.env.example`；本機 `.env`、SQLite 檔案、帳號及報名資料不納入版本控制。

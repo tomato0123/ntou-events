@@ -1,0 +1,66 @@
+# 可供 VS Code REST Client 或其他 HTTP 工具手動測試。
+# 先執行 npm run seed，再執行 npm start。
+# 完成註冊／登入後，將回傳的 data.token 貼到 token 變數。
+# 完成報名後，將回傳的 data.id 貼到 registrationId 變數。
+@baseUrl = http://127.0.0.1:3000
+@token = PASTE_TOKEN_HERE
+@registrationId = PASTE_REGISTRATION_ID_HERE
+
+### 健康檢查
+GET {{baseUrl}}/api/health
+
+### 註冊測試帳號（學號與 email 需唯一）
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "測試同學",
+  "studentId": "B12345678",
+  "email": "test@example.com",
+  "department": "資訊工程學系",
+  "identity": "student",
+  "password": "Example-password-2026!"
+}
+
+### 登入
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Example-password-2026!"
+}
+
+### 目前使用者
+GET {{baseUrl}}/api/me
+Authorization: Bearer {{token}}
+
+### 活動列表
+GET {{baseUrl}}/api/events?limit=20&offset=0
+
+### 活動詳情與剩餘名額
+GET {{baseUrl}}/api/events/ocean-workshop
+
+### 報名（由登入 token 判定報名者，無需 body）
+POST {{baseUrl}}/api/events/ocean-workshop/registrations
+Authorization: Bearer {{token}}
+
+### 我的全部報名結果
+GET {{baseUrl}}/api/registrations/me
+Authorization: Bearer {{token}}
+
+### 我的候補結果
+GET {{baseUrl}}/api/registrations/me?status=waitlisted
+Authorization: Bearer {{token}}
+
+### 單筆結果確認
+GET {{baseUrl}}/api/registrations/{{registrationId}}
+Authorization: Bearer {{token}}
+
+### 取消報名
+DELETE {{baseUrl}}/api/registrations/{{registrationId}}
+Authorization: Bearer {{token}}
+
+### 登出
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{token}}
