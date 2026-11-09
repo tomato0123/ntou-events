@@ -45,10 +45,18 @@ app.get('/api/events/:id', async (req, res) => {
   }
 });
 
-// 順便提供前端頁面：開 http://localhost:3000 即可
-const frontendDir = path.join(__dirname, '..', '前端');
-app.get('/', (req, res) => res.sendFile(path.join(frontendDir, 'Registration System.html')));
-app.use(express.static(frontendDir));
+const frontendFiles = {
+  '/': 'Registration System.html',
+  '/Registration System.html': 'Registration System.html',
+  '/styles.css': 'styles.css',
+  '/app.js': 'app.js'
+};
+
+for (const [route, filename] of Object.entries(frontendFiles)) {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, filename));
+  });
+}
 
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, err => {
