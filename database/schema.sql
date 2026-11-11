@@ -55,3 +55,5 @@ CREATE TABLE public.registrations (
     CONSTRAINT registrations_status_check
         CHECK (status IN ('registered', 'cancelled'))
 );
+
+COMMIT;

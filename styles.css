@@ -343,14 +343,6 @@ h2 {
   margin: 0;
 }
 
-.sample-label {
-  font-size: 11px;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  padding: 4px 10px;
-  border-radius: 4px;
-}
-
 .filter-row {
   display: flex;
   align-items: center;
@@ -361,34 +353,11 @@ h2 {
   border-bottom: 1px solid var(--line);
 }
 
-.categories {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.categories button {
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 7px 19px;
-  color: #607176;
-  background: transparent;
-  font-size: 13px;
-}
-
-.categories button:hover {
-  background: #eaf0ec;
-}
-
-.categories button[aria-pressed=true] {
-  background: var(--navy);
-  color: white;
-}
-
 .sort-label {
   font-size: 11px;
   color: var(--muted);
   white-space: nowrap;
+  margin: 0;
 }
 
 .result-count {
@@ -426,32 +395,9 @@ h2 {
 .card-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
   margin-bottom: 21px;
-}
-
-.category-badge {
-  font-size: 11px;
-  background: #eaf2ee;
-  color: #327360;
-  border-radius: 4px;
-  padding: 3px 9px;
-}
-
-.category-badge[data-category=社團] {
-  background: #f5eee3;
-  color: #85652b;
-}
-
-.category-badge[data-category=體育] {
-  background: #eaf0f6;
-  color: #486c8c;
-}
-
-.category-badge[data-category=其他] {
-  background: #eeecf6;
-  color: #6c5a87;
 }
 
 .event-status {
@@ -501,13 +447,8 @@ h2 {
   border-top: 1px solid #edf0ee;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
-}
-
-.seats {
-  font-size: 11px;
-  color: var(--muted);
 }
 
 .details-button {
@@ -526,6 +467,26 @@ h2 {
 .load-more {
   text-align: center;
   margin: 30px 0 44px;
+}
+
+/* 載入中與錯誤提示 */
+.loading,
+.error {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.error {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+
+.error p {
+  margin: 0;
 }
 
 
@@ -777,25 +738,12 @@ dialog::backdrop {
   h2 {
     font-size: 22px;
   }
-  .sample-label {
-    font-size: 10px;
-  }
   .filter-row {
     align-items: flex-start;
     flex-direction: column;
     gap: 8px;
     margin-top: 20px;
     padding-bottom: 14px;
-  }
-  .categories {
-    gap: 4px;
-  }
-  .categories button {
-    padding: 7px 13px;
-    font-size: 12px;
-  }
-  .sort-label {
-    margin: 0;
   }
   .event-grid {
     grid-template-columns: 1fr;
