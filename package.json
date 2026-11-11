@@ -2,9 +2,9 @@
   "name": "server",
   "version": "1.0.0",
   "description": "NTOU Events local test backend",
-  "main": "server.js",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node --env-file=server/.env server/index.js"
   },
   "license": "ISC",
   "type": "commonjs",
