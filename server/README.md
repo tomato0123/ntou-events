@@ -84,3 +84,44 @@ node --env-file=.env events-check.js
 ```powershell
 node --env-file=.env registrations-check.js
 ```
+
+---
+
+## US-06：授予與撤銷活動管理者權限
+
+此 API 僅允許 JWT 角色為 `admin` 的系統管理員使用：
+
+```http
+PATCH /api/admin/users/7/role
+Authorization: Bearer <admin-jwt>
+Content-Type: application/json
+
+{ "role": "event_manager" }
+```
+
+- 傳入 `event_manager`：授予活動管理者權限。
+- 傳入 `user`：撤銷活動管理者權限，恢復為一般使用者。
+- 其他角色值回傳 `400`。
+- 一般使用者或活動管理者呼叫時回傳 `403`。
+- 系統管理員帳號本身不可透過此 API 降權。
+
+成功回傳：
+
+```json
+{
+  "message": "已授予活動管理者權限",
+  "data": {
+    "id": 7,
+    "name": "測試使用者",
+    "email": "student@ntou.edu.tw",
+    "role": "event_manager",
+    "campus_identity": "student"
+  }
+}
+```
+
+執行 US-06 測試：
+
+```powershell
+npm.cmd run test:us06
+```

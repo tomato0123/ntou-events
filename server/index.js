@@ -13,6 +13,9 @@ const {
 const {
   getMyRegistrations
 } = require('./registration-service');
+const {
+  setEventManagerPermission
+} = require('./user-role-service');
 
 const app = express();
 
@@ -61,6 +64,36 @@ app.post('/api/auth/login', (req, res) => {
     user
   });
 });
+
+function createSetEventManagerPermissionHandler(
+  setPermission = setEventManagerPermission
+) {
+  return async (req, res) => {
+    try {
+      const data = await setPermission(req.params.id, req.body?.role);
+      res.json({
+        message: data.role === 'event_manager'
+          ? '已授予活動管理者權限'
+          : '已撤銷活動管理者權限',
+        data
+      });
+    } catch (error) {
+      const status = error.statusCode || 500;
+      if (status >= 500) console.error('變更活動管理者權限失敗：', error.message);
+      res.status(status).json({
+        error: status >= 500 ? '變更活動管理者權限失敗' : error.message
+      });
+    }
+  };
+}
+
+// 1.3 授予或撤銷活動管理者權限 (僅系統管理員)
+app.patch(
+  '/api/admin/users/:id/role',
+  authenticateToken,
+  requireRole('admin'),
+  createSetEventManagerPermissionHandler()
+);
 
 // ==========================================
 // 2. 活動模組 (Events)
@@ -152,3 +185,5 @@ if (require.main === module) {
 }
 
 module.exports = app;
+module.exports.createSetEventManagerPermissionHandler =
+  createSetEventManagerPermissionHandler;
