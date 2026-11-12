@@ -47,6 +47,10 @@
 
 目前 US-05「查看自己的報名與取消紀錄」已完成資料庫查詢函式與本機測試，尚待串接登入驗證、正式 API 與前端畫面。
 
+US-04「取消本人報名」提供受 JWT 保護的
+`DELETE /api/users/me/registrations/:id`。後端只會將屬於登入者且狀態為
+`registered` 的指定紀錄更新為 `cancelled`，不接受前端指定其他使用者。
+
 ## 資料庫
 
 本專案使用 PostgreSQL。

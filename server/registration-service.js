@@ -4,12 +4,20 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000
 });
 
-async function getMyRegistrations(userId) {
-  if (!Number.isInteger(userId) || userId <= 0) {
-    throw new Error('使用者編號必須是正整數');
+function positiveInteger(value, label) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    const error = new Error(`${label}必須是正整數`);
+    error.statusCode = 400;
+    throw error;
   }
+  return parsed;
+}
 
-  const result = await pool.query(
+async function getMyRegistrations(userId, database = pool) {
+  const safeUserId = positiveInteger(userId, '使用者編號');
+
+  const result = await database.query(
     `SELECT
        r.id,
        r.user_id,
@@ -24,7 +32,7 @@ async function getMyRegistrations(userId) {
      JOIN events AS e ON r.event_id = e.id
      WHERE r.user_id = $1
      ORDER BY r.registered_at DESC, r.id DESC`,
-    [userId]
+    [safeUserId]
   );
 
   return {
@@ -44,11 +52,34 @@ async function getMyRegistrations(userId) {
   };
 }
 
+async function cancelMyRegistration(userId, registrationId, database = pool) {
+  const safeUserId = positiveInteger(userId, '使用者編號');
+  const safeRegistrationId = positiveInteger(registrationId, '報名編號');
+  const result = await database.query(
+    `UPDATE registrations
+     SET status = 'cancelled'
+     WHERE id = $1
+       AND user_id = $2
+       AND status = 'registered'
+     RETURNING id, user_id, event_id, status, registered_at`,
+    [safeRegistrationId, safeUserId]
+  );
+
+  if (result.rowCount === 0) {
+    const error = new Error('找不到可取消的本人有效報名');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return result.rows[0];
+}
+
 async function closeDatabase() {
   await pool.end();
 }
 
 module.exports = {
   getMyRegistrations,
+  cancelMyRegistration,
   closeDatabase
 };
