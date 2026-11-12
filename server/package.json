@@ -4,8 +4,9 @@
   "description": "NTOU Events Backend API",
   "main": "index.js",
   "scripts": {
-    "start": "node --env-file=.env index.js",
-    "test": "node events-check.js",
+    "start": "node --env-file-if-exists=.env index.js",
+    "test": "node --test tests/*.test.js && node events-check.js",
+    "test:us03": "node --test tests/*.test.js",
     "test:us07": "node events-check.js",
     "test:us05": "node registrations-check.js"
   },

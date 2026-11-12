@@ -69,6 +69,14 @@
 
 下載本專案不會自動建立資料庫，也不會取得其他人的資料。
 
-### 目前限制
+## US-03：活動報名與結果確認 API
 
-尚未建立防止「同一使用者重複有效報名同一活動」的唯一索引。
+本分支依團隊資料庫與 API 規格，在既有的 `server/`（Express + PostgreSQL）加入：
+
+- `POST /api/events/{id}/register`：登入者報名活動。
+- `GET /api/users/me/registrations`：查看本人的報名結果與取消歷程。
+- JWT Bearer Token 驗證，使用者編號只由後端登入憑證取得。
+- PostgreSQL 部分唯一索引，避免同一使用者重複有效報名；取消後仍可重新報名。
+- 統一 `{ "error": "錯誤原因" }` 錯誤格式與自動化測試。
+
+安裝、環境設定、API 範例及既有資料庫升級方式請見 [後端開發說明](./server/README.md)。
