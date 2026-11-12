@@ -24,9 +24,9 @@
         <h1 id="hero-title">課堂之外，<br>遇見你的<span>下一份熱愛。</span></h1>
         <p class="hero-description">從一場講座到一段新的友誼，精彩的校園生活，從這裡開始。</p>
         <form id="search-form" class="search-form" role="search">
-          <label class="sr-only" for="search">搜尋活動名稱、地點或關鍵字</label>
+          <label class="sr-only" for="search">搜尋活動名稱或說明</label>
           <span class="search-icon" aria-hidden="true">⌕</span>
-          <input id="search" type="search" placeholder="搜尋活動名稱、地點或關鍵字" autocomplete="off">
+          <input id="search" type="search" placeholder="搜尋活動名稱或說明" autocomplete="off">
           <button class="button" type="submit">搜尋活動</button>
         </form>
         <p class="hero-note">探索新知・認識夥伴・一起參與</p>
@@ -34,12 +34,13 @@
       <div class="sea-lines" aria-hidden="true"><i></i><i></i><i></i></div>
     </section>
     <section id="events" class="events-section" aria-labelledby="events-title">
-      <div class="section-heading"><div><p class="eyebrow">DISCOVER ON CAMPUS</p><h2 id="events-title">探索校園活動</h2></div><span class="sample-label">示範活動資料</span></div>
-      <div class="filter-row"><div id="categories" class="categories" role="group" aria-label="活動分類"><button data-category="全部" aria-pressed="true">全部活動</button><button data-category="學術" aria-pressed="false">學術</button><button data-category="社團" aria-pressed="false">社團</button><button data-category="體育" aria-pressed="false">體育</button><button data-category="其他" aria-pressed="false">其他</button></div><p class="sort-label">依發佈時間・最新優先</p></div>
+      <div class="section-heading"><div><p class="eyebrow">DISCOVER ON CAMPUS</p><h2 id="events-title">探索校園活動</h2></div></div>
+      <!-- 分類篩選：資料庫目前沒有 category 欄位，待小組決定後再加回 -->
+      <div class="filter-row"><p class="sort-label">依活動時間・由近到遠</p></div>
       <p id="result-count" class="result-count" role="status" aria-live="polite"></p>
       <div id="event-grid" class="event-grid"></div>
-      <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>找不到符合的活動</h3><p>試試其他關鍵字，或重新查看全部活動。</p><button id="clear-filters" class="button">清除篩選</button></div>
-      <div class="load-more"><button id="load-more" class="button button-outline">載入更多活動 <span aria-hidden="true">↓</span></button></div>
+      <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>找不到符合的活動</h3><p>試試其他關鍵字，或重新查看全部活動。</p><button id="clear-filters" class="button">清除搜尋</button></div>
+      <div class="load-more"><button id="load-more" class="button button-outline" hidden>載入更多活動 <span aria-hidden="true">↓</span></button></div>
       <aside class="campus-note"><span aria-hidden="true">◉</span><div><strong>把一點時間，留給校園生活。</strong><p>挑一場感興趣的活動，讓今天成為新的開始。</p></div><span class="note-signature">MEET. LEARN. EXPLORE.</span></aside>
     </section>
   </main>
