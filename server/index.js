@@ -11,7 +11,8 @@ const {
   generateToken
 } = require('./auth-middleware');
 const {
-  getMyRegistrations
+  getMyRegistrations,
+  cancelMyRegistration
 } = require('./registration-service');
 
 const app = express();
@@ -132,6 +133,31 @@ app.get('/api/users/me/registrations', authenticateToken, async (req, res) => {
   }
 });
 
+function createCancelRegistrationHandler(cancelRegistration = cancelMyRegistration) {
+  return async (req, res) => {
+    try {
+      const data = await cancelRegistration(req.user.id, req.params.id);
+      res.json({
+        message: '取消報名成功',
+        data
+      });
+    } catch (error) {
+      const status = error.statusCode || 500;
+      if (status >= 500) console.error('取消報名失敗：', error.message);
+      res.status(status).json({
+        error: status >= 500 ? '取消報名失敗' : error.message
+      });
+    }
+  };
+}
+
+// 3.3 取消自己的有效報名 (需登入)
+app.delete(
+  '/api/users/me/registrations/:id',
+  authenticateToken,
+  createCancelRegistrationHandler()
+);
+
 // 全域錯誤處理 (符合統一錯誤回傳格式: { "error": "..." })
 app.use((err, req, res, next) => {
   console.error('伺服器錯誤：', err);
@@ -152,3 +178,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+module.exports.createCancelRegistrationHandler = createCancelRegistrationHandler;

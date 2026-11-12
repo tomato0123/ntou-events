@@ -84,3 +84,42 @@ node --env-file=.env events-check.js
 ```powershell
 node --env-file=.env registrations-check.js
 ```
+
+---
+
+## US-04：取消本人報名
+
+登入者可取消自己的有效報名：
+
+```http
+DELETE /api/users/me/registrations/51
+Authorization: Bearer <jwt>
+```
+
+成功時回傳：
+
+```json
+{
+  "message": "取消報名成功",
+  "data": {
+    "id": 51,
+    "user_id": 7,
+    "event_id": 101,
+    "status": "cancelled",
+    "registered_at": "2026-11-01T08:00:00.000Z"
+  }
+}
+```
+
+後端會從 JWT 取得使用者編號，並只更新同時符合下列條件的紀錄：
+
+- 報名編號與網址中的 `:id` 相同。
+- `user_id` 屬於目前登入者。
+- 狀態仍為 `registered`。
+
+別人的、已取消或不存在的報名都回傳 `404`；無效報名編號回傳 `400`。
+執行 US-04 測試：
+
+```powershell
+npm.cmd run test:us04
+```

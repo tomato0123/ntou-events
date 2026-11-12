@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node --env-file=.env index.js",
-    "test": "node events-check.js",
+    "test": "node events-check.js && node --test tests/*.test.js",
     "test:us07": "node events-check.js",
-    "test:us05": "node registrations-check.js"
+    "test:us05": "node registrations-check.js",
+    "test:us04": "node --test tests/*.test.js"
   },
   "keywords": [],
   "author": "",
