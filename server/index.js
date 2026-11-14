@@ -11,7 +11,8 @@ const {
   generateToken
 } = require('./auth-middleware');
 const {
-  getMyRegistrations
+  getMyRegistrations,
+  getEventRegistrations
 } = require('./registration-service');
 
 const app = express();
@@ -131,6 +132,23 @@ app.get('/api/users/me/registrations', authenticateToken, async (req, res) => {
     res.status(error.statusCode || 500).json({ error: error.message });
   }
 });
+
+// 3.3 管理者查看特定活動的正式與取消名單 (US-08)
+app.get('/api/events/:id/registrations', authenticateToken, requireRole(['admin', 'event_manager']), async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id, 10);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ error: '活動編號必須為整數' });
+      }
+
+      const result = await getEventRegistrations(eventId, req.user);
+      res.json(result);
+    } catch (error) {
+      console.error('查詢活動名單失敗：', error.message);
+      res.status(error.statusCode || 500).json({ error: error.message });
+    }
+  }
+);
 
 // 全域錯誤處理 (符合統一錯誤回傳格式: { "error": "..." })
 app.use((err, req, res, next) => {

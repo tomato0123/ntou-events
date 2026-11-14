@@ -268,7 +268,7 @@ async function getEventById(id, customPool = null) {
   const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
 
   if (isMockMode) {
-    return mockEvents.find(e => e.id === id) || null;
+    return mockEvents.find(e => String(e.id) === String(id)) || null;
   }
 
   const result = await activePool.query(
