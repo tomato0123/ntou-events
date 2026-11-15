@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { mockEvents } = require('./event-service');
 
 const pool = new Pool({
   connectionTimeoutMillis: 5000
@@ -17,6 +18,21 @@ function checkManagerPermission(currentUser) {
   const allowedRoles = ['admin', 'event_manager'];
   if (!allowedRoles.includes(currentUser.role)) {
     const error = new Error('權限不足，僅管理員或活動管理者可查看報名名單');
+    error.statusCode = 403;
+    throw error;
+  }
+}
+
+function checkEventOwner(event, currentUser) {
+  if (!event) {
+    const error = new Error('找不到該活動');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (currentUser.role === 'admin') return;
+  if (!Number.isInteger(currentUser.id) || currentUser.id <= 0 ||
+      event.manager_id == null || event.manager_id !== currentUser.id) {
+    const error = new Error('權限不足，僅可查看自己負責活動的報名名單');
     error.statusCode = 403;
     throw error;
   }
@@ -88,6 +104,8 @@ async function getEventRegistrations(eventId, currentUser, customPool = null) {
   const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
 
   if (isMockMode) {
+    const event = mockEvents.find(item => item.id === eventId);
+    checkEventOwner(event, currentUser);
     const all = mockRegistrations.filter(r => r.event_id === eventId);
     const confirmed = all.filter(r => r.status === 'registered');
     const cancelled = all.filter(r => r.status === 'cancelled');
@@ -105,14 +123,10 @@ async function getEventRegistrations(eventId, currentUser, customPool = null) {
   }
 
   const eventCheck = await activePool.query(
-    'SELECT id, title FROM events WHERE id = $1',
+    'SELECT id, title, manager_id FROM events WHERE id = $1',
     [eventId]
   );
-  if (eventCheck.rows.length === 0) {
-    const error = new Error('找不到該活動');
-    error.statusCode = 404;
-    throw error;
-  }
+  checkEventOwner(eventCheck.rows[0], currentUser);
 
   const result = await activePool.query(
     `SELECT

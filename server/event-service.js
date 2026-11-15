@@ -156,6 +156,13 @@ async function createEvent(data, currentUser, customPool = null) {
   // 1. 權限檢查
   checkPermission(currentUser);
 
+  // 負責人只能來自登入身分，不使用 request body 的 manager_id。
+  if (!Number.isInteger(currentUser.id) || currentUser.id <= 0 || currentUser.id > 2147483647) {
+    const error = new Error('登入者編號無效');
+    error.statusCode = 401;
+    throw error;
+  }
+
   // 2. 欄位及時間設定驗證
   const validated = validateEventData(data);
 
@@ -169,6 +176,7 @@ async function createEvent(data, currentUser, customPool = null) {
       title: validated.title,
       description: validated.description,
       location: validated.location,
+      manager_id: currentUser.id,
       starts_at: validated.starts_at,
       ends_at: validated.ends_at,
       created_at: new Date().toISOString()
@@ -179,15 +187,16 @@ async function createEvent(data, currentUser, customPool = null) {
 
   try {
     const result = await activePool.query(
-      `INSERT INTO events (title, description, location, starts_at, ends_at, created_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())
-       RETURNING id, title, description, location, starts_at, ends_at, created_at`,
+      `INSERT INTO events (title, description, location, starts_at, ends_at, manager_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       RETURNING id, title, description, location, starts_at, ends_at, manager_id, created_at`,
       [
         validated.title,
         validated.description,
         validated.location,
         validated.starts_at,
-        validated.ends_at
+        validated.ends_at,
+        currentUser.id
       ]
     );
 
@@ -197,6 +206,7 @@ async function createEvent(data, currentUser, customPool = null) {
       title: row.title,
       description: row.description,
       location: row.location,
+      manager_id: row.manager_id,
       starts_at: new Date(row.starts_at).toISOString(),
       ends_at: new Date(row.ends_at).toISOString(),
       created_at: new Date(row.created_at).toISOString()

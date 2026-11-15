@@ -30,11 +30,15 @@ CREATE TABLE public.events (
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     location VARCHAR(200) NOT NULL,
+    -- 舊資料遷移期間允許 NULL；新活動由後端填入登入建立者。
+    manager_id INTEGER,
     starts_at TIMESTAMP WITH TIME ZONE NOT NULL,
     ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
         DEFAULT CURRENT_TIMESTAMP,
 
+    CONSTRAINT events_manager_id_fkey
+        FOREIGN KEY (manager_id) REFERENCES public.users (id),
     CONSTRAINT events_time_valid
         CHECK (ends_at > starts_at)
 );

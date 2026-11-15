@@ -7,6 +7,7 @@
     "start": "node --env-file=.env index.js",
     "test": "node events-check.js",
     "test:us07": "node events-check.js",
+    "test:us08": "node --test tests/event-ownership.test.js",
     "test:us05": "node registrations-check.js"
   },
   "keywords": [],

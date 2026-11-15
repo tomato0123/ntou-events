@@ -2,6 +2,14 @@
 
 使用 Node.js、Express 與 PostgreSQL。
 
+## US-08 活動負責人（2026-11-15）
+
+建立活動會將登入建立者保存為 `events.manager_id`；活動管理者只能查看本人負責活動的名單，admin 可查看全部。
+舊活動的負責人先保持 NULL，僅 admin 可查名單，待團隊逐筆指定。
+既有資料庫須先執行 `../database/add_events_manager_id.sql`，再啟動更新後的後端。
+在本目錄執行 `npm.cmd run test:us08` 可驗證歸屬限制，不會寫入真實資料庫。
+規格、遷移與原型登入限制請見 [活動負責人規格](../docs/event-ownership.md)。
+
 ## 第一次使用
 
 在終端機進入 server 資料夾，安裝套件：
