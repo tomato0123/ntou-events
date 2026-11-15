@@ -134,18 +134,19 @@ app.get('/api/users/me/registrations', authenticateToken, async (req, res) => {
 });
 
 // 3.3 管理者查看特定活動的正式與取消名單 (US-08)
-app.get('/api/events/:id/registrations', authenticateToken, requireRole(['admin', 'event_manager']), async (req, res) => {
+app.get('/api/events/:id/registrations', authenticateToken, async (req, res) => {
     try {
-      const eventId = parseInt(req.params.id, 10);
-      if (isNaN(eventId)) {
-        return res.status(400).json({ error: '活動編號必須為整數' });
+      const eventId = Number(req.params.id);
+      if (!/^[0-9]+$/.test(req.params.id) || !Number.isInteger(eventId) ||
+          eventId <= 0 || eventId > 2147483647) {
+        return res.status(400).json({ error: '活動編號必須是有效的正整數' });
       }
 
-      const result = await getEventRegistrations(eventId, req.user);
+      const result = await getEventRegistrations(eventId, req.user, null, req.query.status);
       res.json(result);
     } catch (error) {
-      console.error('查詢活動名單失敗：', error.message);
-      res.status(error.statusCode || 500).json({ error: error.message });
+      const status = error.statusCode || 500;
+      res.status(status).json({ error: status >= 500 ? '查詢活動名單失敗，請稍後再試' : error.message });
     }
   }
 );

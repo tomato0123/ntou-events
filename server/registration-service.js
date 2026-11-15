@@ -7,6 +7,8 @@ const pool = new Pool({
 
 // 記憶體儲存庫 (提供測試環境或未連線資料庫時備用)
 const mockRegistrations = [];
+// 測試用目前使用者資料；授權不採用 Token 內可能過時的 role。
+const mockUsers = [];
 
 function checkManagerPermission(currentUser) {
   if (!currentUser) {
@@ -91,11 +93,21 @@ async function getMyRegistrations(userId, customPool = null) {
 /**
  * [US-08] 管理者查看特定活動的正式與取消名單
  */
-async function getEventRegistrations(eventId, currentUser, customPool = null) {
-  checkManagerPermission(currentUser);
+async function getEventRegistrations(eventId, currentUser, customPool = null, status) {
+  if (!currentUser || !Number.isInteger(currentUser.id) ||
+      currentUser.id <= 0 || currentUser.id > 2147483647) {
+    const error = new Error('未登入或憑證無效');
+    error.statusCode = 401;
+    throw error;
+  }
 
-  if (!Number.isInteger(eventId) || eventId <= 0) {
+  if (!Number.isInteger(eventId) || eventId <= 0 || eventId > 2147483647) {
     const error = new Error('活動編號必須是正整數');
+    error.statusCode = 400;
+    throw error;
+  }
+  if (status !== undefined && !['registered', 'cancelled'].includes(status)) {
+    const error = new Error('status 僅允許 registered 或 cancelled');
     error.statusCode = 400;
     throw error;
   }
@@ -103,30 +115,30 @@ async function getEventRegistrations(eventId, currentUser, customPool = null) {
   const activePool = customPool || pool;
   const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
 
+  const user = isMockMode
+    ? mockUsers.find(item => item.id === currentUser.id)
+    : (await activePool.query('SELECT id, role FROM users WHERE id = $1', [currentUser.id])).rows[0];
+  checkManagerPermission(user);
+
   if (isMockMode) {
     const event = mockEvents.find(item => item.id === eventId);
-    checkEventOwner(event, currentUser);
-    const all = mockRegistrations.filter(r => r.event_id === eventId);
-    const confirmed = all.filter(r => r.status === 'registered');
-    const cancelled = all.filter(r => r.status === 'cancelled');
-
-    return {
-      event_id: eventId,
-      summary: {
-        confirmed_count: confirmed.length,
-        cancelled_count: cancelled.length,
-        total_count: all.length
-      },
-      confirmed,
-      cancelled
-    };
+    checkEventOwner(event, user);
+    const rows = mockRegistrations
+      .filter(r => r.event_id === eventId && (status === undefined || r.status === status))
+      .sort((a, b) => new Date(a.registered_at) - new Date(b.registered_at) || a.id - b.id)
+      .map(r => {
+        const member = mockUsers.find(item => item.id === r.user_id);
+        return { ...r, user_name: member?.name, user_email: member?.email,
+          campus_identity: member?.campus_identity, gender: member?.gender };
+      });
+    return formatRoster(eventId, rows);
   }
 
   const eventCheck = await activePool.query(
     'SELECT id, title, manager_id FROM events WHERE id = $1',
     [eventId]
   );
-  checkEventOwner(eventCheck.rows[0], currentUser);
+  checkEventOwner(eventCheck.rows[0], user);
 
   const result = await activePool.query(
     `SELECT
@@ -136,41 +148,35 @@ async function getEventRegistrations(eventId, currentUser, customPool = null) {
        r.status,
        r.registered_at,
        u.name AS user_name,
-       u.email AS user_email
+       u.email AS user_email,
+       u.campus_identity,
+       u.gender
      FROM registrations AS r
      LEFT JOIN users AS u ON r.user_id = u.id
      WHERE r.event_id = $1
+       AND ($2::text IS NULL OR r.status = $2)
      ORDER BY r.registered_at ASC, r.id ASC`,
-    [eventId]
+    [eventId, status ?? null]
   );
 
-  const formattedRows = result.rows.map(row => ({
-    id: row.id,
-    user_id: row.user_id,
-    event_id: row.event_id,
+  return formatRoster(eventId, result.rows);
+}
+
+function formatRoster(eventId, rows) {
+  const data = rows.map(row => ({
+    registration_id: row.id,
     status: row.status,
     registered_at: row.registered_at ? new Date(row.registered_at).toISOString() : null,
     user: {
       id: row.user_id,
-      name: row.user_name || null,
-      email: row.user_email || null
+      name: row.user_name ?? null,
+      email: row.user_email ?? null,
+      campus_identity: row.campus_identity ?? null,
+      gender: row.gender ?? null
     }
   }));
 
-  const confirmed = formattedRows.filter(r => r.status === 'registered');
-  const cancelled = formattedRows.filter(r => r.status === 'cancelled');
-
-  return {
-    event_id: eventId,
-    event_title: eventCheck.rows[0].title,
-    summary: {
-      confirmed_count: confirmed.length,
-      cancelled_count: cancelled.length,
-      total_count: formattedRows.length
-    },
-    confirmed,
-    cancelled
-  };
+  return { event_id: eventId, total_count: data.length, data };
 }
 
 async function closeDatabase() {
@@ -181,5 +187,6 @@ module.exports = {
   getMyRegistrations,
   getEventRegistrations,
   closeDatabase,
-  mockRegistrations
+  mockRegistrations,
+  mockUsers
 };

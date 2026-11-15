@@ -10,6 +10,11 @@
 在本目錄執行 `npm.cmd run test:us08` 可驗證歸屬限制，不會寫入真實資料庫。
 規格、遷移與原型登入限制請見 [活動負責人規格](../docs/event-ownership.md)。
 
+US-08 名單 API 已改為每次查核資料庫目前角色；回應為 `{event_id,total_count,data}`，支援 `status=registered|cancelled`，活動 ID 嚴格限制為正 INTEGER。
+測試使用 mock／注入 pool；正式登入、UI-06 及真實 PostgreSQL 整合驗證仍待完成。
+遷移前後可用 `../database/verify_events_manager_id.sql` 唯讀檢查欄位與外鍵。
+舊的 `test:us05`／`registrations-check.js` 會寫入現有資料庫，不應在正式資料上執行。
+
 ## 第一次使用
 
 在終端機進入 server 資料夾，安裝套件：
