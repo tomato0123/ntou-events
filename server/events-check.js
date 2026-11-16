@@ -17,6 +17,12 @@ const {
   mockEvents
 } = require('./event-service');
 
+// 合法報名期間 (早於下方所有測試活動的開始時間)
+const REG = {
+  registration_opens_at: '2026-10-01T00:00:00Z',
+  registration_closes_at: '2026-11-15T00:00:00Z'
+};
+
 // 準備測試帳號
 const adminUser = { id: 99, name: '測試管理員', email: 'admin@ntou.edu.tw', role: 'admin' };
 const managerUser = { id: 50, name: '測試活動主辦人', email: 'manager@ntou.edu.tw', role: 'event_manager' };
@@ -49,8 +55,8 @@ async function runServiceTests() {
       location: '電資大樓 國際會議廳',
       starts_at: '2026-11-20T09:00:00Z',
       ends_at: '2026-11-20T18:00:00Z',
-      registration_starts_at: '2026-10-01T00:00:00Z',
-      registration_ends_at: '2026-11-15T23:59:59Z'
+      registration_opens_at: '2026-10-01T00:00:00Z',
+      registration_closes_at: '2026-11-15T23:59:59Z'
     };
 
     const created = await createEvent(validEvent, managerUser);
@@ -72,7 +78,8 @@ async function runServiceTests() {
       description: '說明',
       location: '地點',
       starts_at: '2026-12-01T10:00:00Z',
-      ends_at: '2026-12-01T12:00:00Z'
+      ends_at: '2026-12-01T12:00:00Z',
+      ...REG
     });
     assert(false, '缺少活動名稱應該拋出錯誤');
   } catch (err) {
@@ -85,7 +92,8 @@ async function runServiceTests() {
       title: '測試活動',
       description: '說明',
       starts_at: '2026-12-01T10:00:00Z',
-      ends_at: '2026-12-01T12:00:00Z'
+      ends_at: '2026-12-01T12:00:00Z',
+      ...REG
     });
     assert(false, '缺少活動地點應該拋出錯誤');
   } catch (err) {
@@ -98,7 +106,8 @@ async function runServiceTests() {
       title: '測試活動',
       description: '說明',
       location: '地點',
-      ends_at: '2026-12-01T12:00:00Z'
+      ends_at: '2026-12-01T12:00:00Z',
+      ...REG
     });
     assert(false, '缺少開始時間應該拋出錯誤');
   } catch (err) {
@@ -112,7 +121,8 @@ async function runServiceTests() {
       description: '時間設定倒置',
       location: '共同教室 101',
       starts_at: '2026-12-01T18:00:00Z',
-      ends_at: '2026-12-01T10:00:00Z' // 結束早於開始！
+      ends_at: '2026-12-01T10:00:00Z', // 結束早於開始！
+      ...REG
     });
     assert(false, '結束時間早於開始時間應該拋出錯誤');
   } catch (err) {
@@ -126,7 +136,8 @@ async function runServiceTests() {
       description: '說明',
       location: '地點',
       starts_at: 'Not-A-Date',
-      ends_at: '2026-12-01T10:00:00Z'
+      ends_at: '2026-12-01T10:00:00Z',
+      ...REG
     });
     assert(false, '無效時間格式應拋出錯誤');
   } catch (err) {
@@ -141,12 +152,48 @@ async function runServiceTests() {
       location: '地點',
       starts_at: '2026-12-01T10:00:00Z',
       ends_at: '2026-12-01T12:00:00Z',
-      registration_starts_at: '2026-11-01T00:00:00Z',
-      registration_ends_at: '2026-12-02T00:00:00Z' // 晚於活動結束
+      registration_opens_at: '2026-11-01T00:00:00Z',
+      registration_closes_at: '2026-12-01T11:00:00Z' // 晚於活動開始
     });
-    assert(false, '報名截止晚於活動結束應拋出錯誤');
+    assert(false, '報名截止晚於活動開始應拋出錯誤');
   } catch (err) {
-    assert(err.message.includes('報名截止時間不可晚於活動結束時間'), '成功攔截不合理報名期間');
+    assert(err.message.includes('不可晚於活動開始時間'), '成功攔截報名截止晚於活動開始');
+  }
+
+  const baseEvent = {
+    title: '期間測試',
+    description: '說明',
+    location: '地點',
+    starts_at: '2026-12-01T10:00:00Z',
+    ends_at: '2026-12-01T12:00:00Z',
+    ...REG
+  };
+  const expectError = (data, keyword, name) => {
+    try {
+      validateEventData(data);
+      assert(false, name, '應該拋出錯誤');
+    } catch (err) {
+      assert(err.statusCode === 400 && err.message.includes(keyword), name, err.message);
+    }
+  };
+
+  // 2-7 缺少報名期間 (v2.2 必填)
+  expectError({ ...baseEvent, registration_opens_at: undefined }, '報名開始時間', '偵測到缺少報名開始時間');
+  expectError({ ...baseEvent, registration_closes_at: undefined }, '報名截止時間', '偵測到缺少報名截止時間');
+  // 2-8 報名截止早於報名開始
+  expectError({ ...baseEvent, registration_opens_at: '2026-11-20T00:00:00Z', registration_closes_at: '2026-11-10T00:00:00Z' },
+    '必須晚於報名開始時間', '成功攔截報名截止早於報名開始');
+  // 2-9 時間未帶時區
+  expectError({ ...baseEvent, starts_at: '2026-12-01T10:00:00' }, '必須帶時區', '成功攔截未帶時區的時間');
+  // 2-10 is_published 非布林
+  expectError({ ...baseEvent, is_published: 'true' }, 'is_published', '成功攔截非布林公開狀態');
+
+  // 2-11 邊界：報名截止恰好等於活動開始 → 允許；公開狀態預設 false
+  try {
+    const ok = validateEventData({ ...baseEvent, registration_closes_at: '2026-12-01T10:00:00Z' });
+    assert(ok.is_published === false, '報名截止等於活動開始可通過，公開狀態預設 false');
+  } catch (err) {
+    assert(false, '報名截止等於活動開始應該允許', err.message);
   }
 
   // 測試 3：一般使用者嘗試建立活動，確認操作遭拒絕
@@ -158,7 +205,8 @@ async function runServiceTests() {
         description: '未經核可發布活動',
         location: '操場',
         starts_at: '2026-12-10T14:00:00Z',
-        ends_at: '2026-12-10T16:00:00Z'
+        ends_at: '2026-12-10T16:00:00Z',
+        ...REG
       },
       normalUser
     );
@@ -175,7 +223,8 @@ async function runServiceTests() {
         description: '說明',
         location: '地點',
         starts_at: '2026-12-10T14:00:00Z',
-        ends_at: '2026-12-10T16:00:00Z'
+        ends_at: '2026-12-10T16:00:00Z',
+        ...REG
       },
       null
     );
@@ -212,7 +261,8 @@ async function runApiHttpTests() {
         description: '帶你從零打造校園聊天機器人。',
         location: '資訊大樓 302 教室',
         starts_at: '2026-12-01T13:30:00Z',
-        ends_at: '2026-12-01T16:30:00Z'
+        ends_at: '2026-12-01T16:30:00Z',
+        ...REG
       })
     });
 
@@ -240,7 +290,8 @@ async function runApiHttpTests() {
         description: '缺漏名稱',
         location: '教室',
         starts_at: '2026-12-01T13:30:00Z',
-        ends_at: '2026-12-01T16:30:00Z'
+        ends_at: '2026-12-01T16:30:00Z',
+        ...REG
       })
     });
     const badBody1 = await badReq1.json();
@@ -259,7 +310,8 @@ async function runApiHttpTests() {
         description: '時間倒置',
         location: '教室',
         starts_at: '2026-12-01T16:30:00Z',
-        ends_at: '2026-12-01T13:30:00Z'
+        ends_at: '2026-12-01T13:30:00Z',
+        ...REG
       })
     });
     const badBody2 = await badReq2.json();
@@ -279,7 +331,8 @@ async function runApiHttpTests() {
         description: '測試權限',
         location: '學生宿舍',
         starts_at: '2026-12-01T13:30:00Z',
-        ends_at: '2026-12-01T16:30:00Z'
+        ends_at: '2026-12-01T16:30:00Z',
+        ...REG
       })
     });
     const forbiddenBody = await forbiddenReq.json();
@@ -295,12 +348,94 @@ async function runApiHttpTests() {
         description: '測試訪客阻擋',
         location: '體育館',
         starts_at: '2026-12-01T13:30:00Z',
-        ends_at: '2026-12-01T16:30:00Z'
+        ends_at: '2026-12-01T16:30:00Z',
+        ...REG
       })
     });
     const unauthBody = await unauthReq.json();
     assert(unauthReq.status === 401, '未帶 Token 建立活動回傳 401 Unauthorized');
     assert(unauthBody.error !== undefined, '回傳未登入錯誤訊息');
+
+    // API 測試 4：UI-05 修改活動 PUT /api/events/{id}
+    console.log('\n--- API 測試 4：UI-05 修改活動 ---');
+    const eventId = createBody.data.id;
+    const putBody = {
+      title: 'AI 實戰工作坊（加場）',
+      description: '延長實作時間。',
+      location: '資訊大樓 303 教室',
+      starts_at: '2026-12-01T21:30:00+08:00',
+      ends_at: '2026-12-02T01:30:00+08:00',
+      registration_opens_at: '2026-11-01T08:00:00+08:00',
+      registration_closes_at: '2026-11-30T23:59:00+08:00',
+      is_published: true
+    };
+    const put = (id, body, token) => fetch(`${baseUrl}/events/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+      body: JSON.stringify(body)
+    });
+
+    const putRes = await put(eventId, putBody, adminToken);
+    const putJson = await putRes.json();
+    assert(putRes.status === 200, '管理員修改活動回傳 200 OK');
+    assert(putJson.message === '活動更新成功', '回傳成功訊息 "活動更新成功"');
+    assert(putJson.data && putJson.data.title === putBody.title && putJson.data.is_published === true, '回傳更新後的活動資料');
+    assert(putJson.data && putJson.data.starts_at === '2026-12-01T13:30:00.000Z', '帶 +08:00 的時間正確轉為 UTC 儲存');
+    assert(putJson.data && putJson.data.registration_closes_at === '2026-11-30T15:59:00.000Z', '回傳報名截止時間');
+
+    const detailRes = await fetch(`${baseUrl}/events/${eventId}`);
+    const detail = await detailRes.json();
+    assert(detail.location === putBody.location && detail.registration_opens_at === '2026-11-01T00:00:00.000Z', '重新查詢可取得修改後的內容');
+
+    const badPut = await put(eventId, { ...putBody, registration_closes_at: '2026-12-01T22:00:00+08:00' }, adminToken);
+    const badPutJson = await badPut.json();
+    assert(badPut.status === 400 && badPutJson.error.includes('不可晚於活動開始時間'), '修改時時間順序不合理回傳 400');
+
+    const notFoundPut = await put(999999, putBody, adminToken);
+    assert(notFoundPut.status === 404, '修改不存在的活動回傳 404');
+
+    const forbiddenPut = await put(eventId, putBody, normalUserToken);
+    assert(forbiddenPut.status === 403, '一般使用者修改活動回傳 403');
+
+    const unauthPut = await put(eventId, putBody, null);
+    assert(unauthPut.status === 401, '未帶 Token 修改活動回傳 401');
+
+    const badIdPut = await put('abc', putBody, adminToken);
+    assert(badIdPut.status === 400, '活動編號非整數回傳 400');
+
+    const looseIdPut = await put(`${eventId}xyz`, putBody, adminToken);
+    assert(looseIdPut.status === 400, '活動編號含非數字字元回傳 400');
+
+    // API 測試 5：活動負責人（BFR-06）— 管理者只能修改自己負責的活動
+    console.log('\n--- API 測試 5：修改活動的負責人限制 ---');
+    assert(createBody.data.manager_id === adminUser.id, '建立活動時負責人為登入建立者');
+    const managerToken = generateToken(managerUser);
+    const otherManagerToken = generateToken({ id: 51, name: '其他管理者', email: 'manager2@ntou.edu.tw', role: 'event_manager' });
+
+    const ownRes = await fetch(`${baseUrl}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${managerToken}` },
+      body: JSON.stringify({ ...putBody, title: '管理者自己的活動', manager_id: 999 })
+    });
+    const ownBody = await ownRes.json();
+    assert(ownRes.status === 201 && ownBody.data.manager_id === managerUser.id, '忽略前端指定的 manager_id，負責人為登入者');
+
+    const ownPut = await put(ownBody.data.id, { ...putBody, title: '管理者修改自己的活動' }, managerToken);
+    assert(ownPut.status === 200, '活動管理者可修改自己負責的活動');
+
+    const othersPut = await put(ownBody.data.id, putBody, otherManagerToken);
+    const othersJson = await othersPut.json();
+    assert(othersPut.status === 403 && othersJson.error.includes('自己負責'), '其他活動管理者修改他人活動回傳 403');
+
+    const adminOnOthers = await put(ownBody.data.id, { ...putBody, title: '管理員代為修改' }, adminToken);
+    const adminOnOthersJson = await adminOnOthers.json();
+    assert(adminOnOthers.status === 200 && adminOnOthersJson.data.manager_id === managerUser.id, '系統管理員可修改任何活動，且負責人不被改變');
+
+    mockEvents.push({ ...putBody, id: 777, manager_id: null, is_published: false, created_at: new Date().toISOString() });
+    const nullOwnerByManager = await put(777, putBody, managerToken);
+    assert(nullOwnerByManager.status === 403, '尚未指定負責人的舊活動，活動管理者不可修改');
+    const nullOwnerByAdmin = await put(777, putBody, adminToken);
+    assert(nullOwnerByAdmin.status === 200, '尚未指定負責人的舊活動，系統管理員可修改');
 
   } finally {
     server.close();
