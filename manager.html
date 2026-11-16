@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="查看您有權管理的活動報名名單。">
+  <title>報名名單｜海大活動報名系統</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="manager.css">
+  <script src="api-config.js" defer></script>
+  <script src="auth-session.js" defer></script>
+  <script src="manager.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+  <header class="site-header"><div class="header-inner">
+    <a class="brand" href="index.html" aria-label="海大活動報名系統首頁"><span class="brand-mark" aria-hidden="true">海</span><span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span></a>
+    <nav aria-label="主要導覽"><a href="index.html">活動探索</a><a class="nav-active" href="manager.html" aria-current="page">活動管理</a></nav>
+    <button class="button button-small" id="sign-out" hidden>登出</button>
+  </div></header>
+  <main id="main" class="manager-main">
+    <div class="manager-heading"><div><p class="eyebrow">EVENT MANAGEMENT</p><h1>活動報名名單</h1><p class="manager-intro">掌握報名狀況，為每一次相聚做好準備。</p></div><span class="read-only-label">名單查閱</span></div>
+    <section class="manager-panel" aria-label="選擇活動與報名狀態">
+      <div class="manager-controls">
+        <div class="control-field event-field"><label for="managed-event">選擇活動</label><select id="managed-event" disabled><option value="">請先登入</option></select></div>
+        <div class="control-field"><label for="registration-status">報名狀態</label><select id="registration-status" disabled><option value="">全部狀態</option><option value="registered">已報名</option><option value="cancelled">已取消</option></select></div>
+        <button id="refresh-roster" class="button button-outline" disabled>重新整理</button>
+      </div>
+      <p class="manager-hint">僅列出您有權查看名單的活動。</p>
+    </section>
+    <section id="roster-region" aria-labelledby="selected-title" aria-busy="false">
+      <div id="selected-event" class="selected-event" hidden><p class="eyebrow">SELECTED EVENT</p><h2 id="selected-title"></h2><p id="selected-meta"></p></div>
+      <div class="roster-heading"><h2>參與者名單</h2><p id="roster-count" class="roster-count"></p></div>
+      <div id="roster-message" class="roster-message" role="status" aria-live="polite"></div>
+      <button id="retry-roster" class="button button-outline" hidden>重試</button>
+      <div id="roster-results" hidden>
+        <p class="table-hint" id="table-hint">依報名時間排序 · 小螢幕可左右捲動表格</p>
+        <div class="roster-table-wrap" tabindex="0" role="region" aria-label="活動報名名單表格" aria-describedby="table-hint">
+          <table class="roster-table"><caption class="sr-only" id="roster-caption">活動報名名單</caption><thead><tr><th scope="col">報名編號</th><th scope="col">姓名</th><th scope="col">Email</th><th scope="col">校園身分</th><th scope="col">性別</th><th scope="col">報名狀態</th><th scope="col">報名時間</th></tr></thead><tbody id="roster-body"></tbody></table>
+        </div>
+      </div>
+    </section>
+    <p class="privacy-note">報名資料僅供活動管理使用，請妥善保護參與者個人資料。</p>
+    <noscript><p class="roster-message">請啟用 JavaScript 以查看活動報名名單。</p></noscript>
+  </main>
+  <footer><a class="footer-brand" href="index.html">海大活動報名系統</a><p>國立臺灣海洋大學 · 校園活動管理</p><span>學生專案 · 非官方網站</span></footer>
+</body>
+</html>

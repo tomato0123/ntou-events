@@ -40,6 +40,39 @@ function checkEventOwner(event, currentUser) {
   }
 }
 
+async function getCurrentManager(currentUser, activePool, isMockMode) {
+  if (!currentUser || !Number.isInteger(currentUser.id) ||
+      currentUser.id <= 0 || currentUser.id > 2147483647) {
+    const error = new Error('未登入或憑證無效');
+    error.statusCode = 401;
+    throw error;
+  }
+  const user = isMockMode
+    ? mockUsers.find(item => item.id === currentUser.id)
+    : (await activePool.query('SELECT id, role FROM users WHERE id = $1', [currentUser.id])).rows[0];
+  checkManagerPermission(user);
+  return user;
+}
+
+// UI-06 專用選單；不經公開活動端點，也不讓前端自行判斷歸屬。
+async function getManagedEvents(currentUser, customPool = null) {
+  const activePool = customPool || pool;
+  const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
+  const user = await getCurrentManager(currentUser, activePool, isMockMode);
+  const rows = isMockMode
+    ? mockEvents.filter(event => user.role === 'admin' || event.manager_id === user.id)
+      .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at) || a.id - b.id)
+    : (await activePool.query(
+      `SELECT id, title, location, starts_at, ends_at FROM events
+       WHERE ($1::boolean OR manager_id = $2)
+       ORDER BY starts_at ASC, id ASC`, [user.role === 'admin', user.id])).rows;
+  return { data: rows.map(row => ({
+    id: row.id, title: row.title, location: row.location,
+    starts_at: new Date(row.starts_at).toISOString(),
+    ends_at: new Date(row.ends_at).toISOString()
+  })) };
+}
+
 async function getMyRegistrations(userId, customPool = null) {
   if (!Number.isInteger(userId) || userId <= 0) {
     const error = new Error('使用者編號必須是正整數');
@@ -115,10 +148,7 @@ async function getEventRegistrations(eventId, currentUser, customPool = null, st
   const activePool = customPool || pool;
   const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
 
-  const user = isMockMode
-    ? mockUsers.find(item => item.id === currentUser.id)
-    : (await activePool.query('SELECT id, role FROM users WHERE id = $1', [currentUser.id])).rows[0];
-  checkManagerPermission(user);
+  const user = await getCurrentManager(currentUser, activePool, isMockMode);
 
   if (isMockMode) {
     const event = mockEvents.find(item => item.id === eventId);
@@ -186,6 +216,7 @@ async function closeDatabase() {
 module.exports = {
   getMyRegistrations,
   getEventRegistrations,
+  getManagedEvents,
   closeDatabase,
   mockRegistrations,
   mockUsers
