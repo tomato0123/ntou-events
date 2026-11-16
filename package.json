@@ -5,7 +5,13 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node --env-file=server/.env server/index.js",
-    "test:us02": "node --test server/tests/auth.test.js"
+    "test:us02": "node --test server/tests/auth.test.js",
+    "test:ui03": "npm --prefix tests test",
+    "test:ui06": "npm --prefix server run test:ui06",
+    "test:us08": "npm --prefix server run test:us08",
+    "test:us07": "npm --prefix server run test:us07",
+    "test:integration": "npm --prefix server run test:integration",
+    "test:all": "npm --prefix server run test:all && npm run test:ui03 && npm --prefix tests run test:ui06"
   },
   "license": "ISC",
   "type": "commonjs",

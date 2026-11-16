@@ -338,3 +338,6 @@ async function main() {
 
 main();
 
+
+// 回歸失敗時讓 npm test:all 正確失敗，不僅印出失敗文字。
+process.on('beforeExit', () => { if (failedCount > 0) process.exitCode = 1; });

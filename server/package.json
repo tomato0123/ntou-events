@@ -7,7 +7,13 @@
     "start": "node --env-file=.env index.js",
     "test": "node events-check.js",
     "test:us07": "node events-check.js",
-    "test:us05": "node registrations-check.js"
+    "test:us08": "node --test tests/event-ownership.test.js",
+    "test:ui06": "node --test tests/managed-events.test.js tests/event-ownership.test.js",
+    "preview:ui06": "node tests/ui06-preview.js",
+    "test:us05": "node registrations-check.js",
+    "test:us02": "node --test tests/auth.test.js",
+    "test:integration": "node --test tests/integration-main.test.js",
+    "test:all": "npm run test:us02 && npm run test:ui06 && npm run test:us07 && npm run test:integration"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +23,7 @@
     "cors": "^2.8.5",
     "express": "^5.3.0",
     "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.6.0",
     "pg": "^8.23.1"
   }
 }

@@ -1,5 +1,7 @@
 # US-02 校園帳號服務
 
+> 2026-11-16 整合更新：下方保留原分支實作／歷史驗收紀錄。現行 API 設定、安裝、migration、main 合併結果與未完成需求，請以 [loginAndRegist 整合說明](login-and-regist-integration.md) 的本次實測為準；需求不因歷史狀態描述而刪除。
+
 共同基底：`5b1b0ab264817eeb23b0f9e44960f55595ba9ebc`（origin/main）。原本機 branch_Zhang 備份 `backup/branch_Zhang-20261116` 同 SHA；原遠端備份 `backup/branch_Zhang-remote-20261116` 為 `20fc94eeaa7a4c24fb532d678e9518c3461847a1`。本次使用者直接授權完成兩項並 push，取代附件中僅本機提交的流程。未刪除舊分支、未改 main。
 
 ## 原變更拆分

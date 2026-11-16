@@ -1,5 +1,7 @@
 # UI-03 註冊、登入與 Email 驗證介面
 
+> 2026-11-16 整合更新：下方保留原分支實作／歷史驗收紀錄。現行 API 設定、安裝、migration、main 合併結果與未完成需求，請以 [loginAndRegist 整合說明](login-and-regist-integration.md) 的本次實測為準；需求不因歷史狀態描述而刪除。
+
 共同基底 `5b1b0ab264817eeb23b0f9e44960f55595ba9ebc`，由 backup/auth-split-base-20261116 建立，沒有從 US-02 分支建立。後端契約依 US-02 的 docs/us-02-auth.md；需合併 US-02 才可執行完整帳號流程。本次使用者已明確要求 push 兩個功能分支，取代附件僅本機提交的流程。
 
 ## 原變更分拆

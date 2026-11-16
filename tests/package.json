@@ -4,6 +4,7 @@
   },
   "private": true,
   "scripts": {
-    "test": "node --test ui03.test.js"
+    "test": "node --test ui03.test.js",
+    "test:ui06": "node --test ui06-dom.test.js"
   }
 }

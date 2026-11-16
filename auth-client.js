@@ -7,7 +7,7 @@
     const token=authenticated?session.getToken():'';
     let response, data;
     try {
-      response=await fetch(`${window.NTOU_API_BASE}${path}`,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:`Bearer ${token}`}:{})},...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal});
+      response=await fetch(`${window.NtouConfig.apiBase}${path}`,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:`Bearer ${token}`}:{})},...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal});
     } catch(e) { if(e.name==='AbortError') throw e;throw Object.assign(new Error('網路連線失敗，請稍後重試'),{status:0}); }
     try {data=await response.json();} catch {throw Object.assign(new Error('服務回應格式錯誤，請稍後重試'),{status:response.status});}
     if(!response.ok) throw Object.assign(new Error(typeof data.error==='string'?data.error:'服務暫時無法使用，請稍後重試'),{status:response.status,retryAfter:response.headers.get('Retry-After')});
