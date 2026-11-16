@@ -11,9 +11,14 @@
 規格、遷移與原型登入限制請見 [活動負責人規格](../docs/event-ownership.md)。
 
 US-08 名單 API 已改為每次查核資料庫目前角色；回應為 `{event_id,total_count,data}`，支援 `status=registered|cancelled`，活動 ID 嚴格限制為正 INTEGER。
-測試使用 mock／注入 pool；正式登入、UI-06 及真實 PostgreSQL 整合驗證仍待完成。
+測試使用 mock／注入 pool；正式登入及真實 PostgreSQL 整合驗證仍待完成。UI-06 頁面與串接契約見 [UI-06 文件](../docs/ui-06.md)。
 遷移前後可用 `../database/verify_events_manager_id.sql` 唯讀檢查欄位與外鍵。
 舊的 `test:us05`／`registrations-check.js` 會寫入現有資料庫，不應在正式資料上執行。
+
+## UI-06 名單頁
+
+啟動本伺服器後開啟 `/manager.html`；頁面使用 `/api/manage/events` 取得後端授權過濾的活動選單，再呼叫既有名單 API。首頁也提供「活動管理」入口。
+正式登入仍待 US-02 串接；頁面沒有測試登入入口。執行 `npm.cmd run test:ui06` 驗證後端，`npm.cmd run preview:ui06` 啟動獨立 mock 預覽（8126 埠），開啟 `/preview` 或 `/__test__/runner` 驗證前端。
 
 ## 第一次使用
 
