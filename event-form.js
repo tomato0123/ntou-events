@@ -2,8 +2,8 @@
 // 對應：SRD UI-05 / BFR-06 / US-07；API 2.3 POST /api/events、2.4 PUT /api/events/{id}
 // 時間以 Asia/Taipei (UTC+8) 輸入與顯示，送出時帶 +08:00 時區。
 
-const API_BASE = window.NTOU_API_BASE || 'http://127.0.0.1:8000/api';
-const AUTH_KEY = 'ntou_auth';
+// 與 UI-06 共用：api-config.js 提供 API 位址，auth-session.js 保存登入 Token
+const API_BASE = window.NtouConfig?.apiBase || 'http://127.0.0.1:8000/api';
 const MANAGER_ROLES = ['admin', 'event_manager'];
 const ROLE_LABELS = { admin: '系統管理員', event_manager: '活動管理者', user: '一般使用者' };
 const TIME_FIELDS = ['registration_opens_at', 'registration_closes_at', 'starts_at', 'ends_at'];
@@ -29,12 +29,28 @@ const submitButton = $('#submit-button');
 // 目前編輯中的活動編號；null 代表建立新活動
 let editingId = null;
 
-/* ---------- 登入狀態 (sessionStorage，關閉分頁即清除) ---------- */
+/* ---------- 登入狀態（共用 NtouSession，只保存 Token；關閉分頁即清除） ---------- */
+// 從 Token 解出姓名與角色只用於畫面顯示；實際權限一律由後端驗證。
+function decodeTokenUser(token) {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(Array.from(atob(payload), c => `%${c.charCodeAt(0).toString(16).padStart(2, '0')}`).join(''));
+    const { id, name, email, role } = JSON.parse(json);
+    return { id, name, email, role };
+  } catch {
+    return null;
+  }
+}
 function readAuth() {
-  try { return JSON.parse(sessionStorage.getItem(AUTH_KEY)) || null; } catch { return null; }
+  const token = window.NtouSession?.getToken() || '';
+  const user = token ? decodeTokenUser(token) : null;
+  return token && user ? { token, user } : null;
 }
 function saveAuth(auth) {
-  try { auth ? sessionStorage.setItem(AUTH_KEY, JSON.stringify(auth)) : sessionStorage.removeItem(AUTH_KEY); } catch { /* 儲存不可用時僅本頁有效 */ }
+  try {
+    if (auth) window.NtouSession.setToken(auth.token);
+    else window.NtouSession.clear();
+  } catch { /* 儲存不可用時僅本頁有效 */ }
 }
 
 function setStatus(node, type, message) {

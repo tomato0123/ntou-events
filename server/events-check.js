@@ -403,6 +403,40 @@ async function runApiHttpTests() {
     const badIdPut = await put('abc', putBody, adminToken);
     assert(badIdPut.status === 400, '活動編號非整數回傳 400');
 
+    const looseIdPut = await put(`${eventId}xyz`, putBody, adminToken);
+    assert(looseIdPut.status === 400, '活動編號含非數字字元回傳 400');
+
+    // API 測試 5：活動負責人（BFR-06）— 管理者只能修改自己負責的活動
+    console.log('\n--- API 測試 5：修改活動的負責人限制 ---');
+    assert(createBody.data.manager_id === adminUser.id, '建立活動時負責人為登入建立者');
+    const managerToken = generateToken(managerUser);
+    const otherManagerToken = generateToken({ id: 51, name: '其他管理者', email: 'manager2@ntou.edu.tw', role: 'event_manager' });
+
+    const ownRes = await fetch(`${baseUrl}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${managerToken}` },
+      body: JSON.stringify({ ...putBody, title: '管理者自己的活動', manager_id: 999 })
+    });
+    const ownBody = await ownRes.json();
+    assert(ownRes.status === 201 && ownBody.data.manager_id === managerUser.id, '忽略前端指定的 manager_id，負責人為登入者');
+
+    const ownPut = await put(ownBody.data.id, { ...putBody, title: '管理者修改自己的活動' }, managerToken);
+    assert(ownPut.status === 200, '活動管理者可修改自己負責的活動');
+
+    const othersPut = await put(ownBody.data.id, putBody, otherManagerToken);
+    const othersJson = await othersPut.json();
+    assert(othersPut.status === 403 && othersJson.error.includes('自己負責'), '其他活動管理者修改他人活動回傳 403');
+
+    const adminOnOthers = await put(ownBody.data.id, { ...putBody, title: '管理員代為修改' }, adminToken);
+    const adminOnOthersJson = await adminOnOthers.json();
+    assert(adminOnOthers.status === 200 && adminOnOthersJson.data.manager_id === managerUser.id, '系統管理員可修改任何活動，且負責人不被改變');
+
+    mockEvents.push({ ...putBody, id: 777, manager_id: null, is_published: false, created_at: new Date().toISOString() });
+    const nullOwnerByManager = await put(777, putBody, managerToken);
+    assert(nullOwnerByManager.status === 403, '尚未指定負責人的舊活動，活動管理者不可修改');
+    const nullOwnerByAdmin = await put(777, putBody, adminToken);
+    assert(nullOwnerByAdmin.status === 200, '尚未指定負責人的舊活動，系統管理員可修改');
+
   } finally {
     server.close();
   }

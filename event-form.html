@@ -7,6 +7,8 @@
   <title>活動建立與編輯｜海大活動報名系統</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="event-form.css">
+  <script src="api-config.js" defer></script>
+  <script src="auth-session.js" defer></script>
   <script src="event-form.js" defer></script>
 </head>
 <body>
@@ -14,7 +16,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="index.html" aria-label="海大活動報名系統首頁"><span class="brand-mark" aria-hidden="true">海</span><span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span></a>
-      <nav aria-label="主要導覽"><a href="index.html">活動探索</a><a class="nav-active" href="event-form.html" aria-current="page">活動管理</a></nav>
+      <nav aria-label="主要導覽"><a href="index.html">活動探索</a><a class="nav-active" href="manager.html">活動管理</a></nav>
     </div>
   </header>
 
@@ -22,7 +24,7 @@
     <div class="manage-heading">
       <p class="eyebrow">EVENT MANAGEMENT</p>
       <h1 id="form-title">建立活動</h1>
-      <p class="manage-hint">僅限活動管理者與系統管理員使用。時間一律以台北時間（UTC+8）填寫。</p>
+      <p class="manage-hint">僅限活動管理者與系統管理員使用；活動管理者只能編輯自己負責的活動。時間一律以台北時間（UTC+8）填寫。<a href="manager.html">返回報名名單</a></p>
     </div>
 
     <!-- 登入區：尚未登入或權限不足時顯示 -->

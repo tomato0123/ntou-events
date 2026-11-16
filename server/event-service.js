@@ -122,7 +122,7 @@ function toIso(value) {
  * 將資料庫列轉為 API 回傳格式
  */
 function toEvent(row) {
-  return {
+  const event = {
     id: row.id,
     title: row.title,
     description: row.description,
@@ -134,6 +134,35 @@ function toEvent(row) {
     is_published: row.is_published === true,
     created_at: toIso(row.created_at)
   };
+  // 負責人只在建立／修改的回應中提供（查詢有選取 manager_id 時）
+  if (Object.prototype.hasOwnProperty.call(row, 'manager_id')) {
+    event.manager_id = row.manager_id;
+  }
+  return event;
+}
+
+/**
+ * 登入者編號必須是有效的 PostgreSQL INTEGER（活動負責人來源）
+ */
+function requireUserId(currentUser) {
+  if (!Number.isInteger(currentUser.id) || currentUser.id <= 0 || currentUser.id > 2147483647) {
+    const error = new Error('登入者編號無效');
+    error.statusCode = 401;
+    throw error;
+  }
+}
+
+/**
+ * 修改權限：admin 可修改所有活動；event_manager 只能修改負責人為本人的活動（SRD US-07、BFR-06）。
+ * 尚未指定負責人（manager_id 為 NULL）的舊活動僅 admin 可修改，與 US-08 名單規則一致。
+ */
+function checkOwnership(event, currentUser) {
+  if (currentUser.role === 'admin') return;
+  if (event.manager_id == null || event.manager_id !== currentUser.id) {
+    const error = new Error('權限不足，活動管理者只能修改自己負責的活動');
+    error.statusCode = 403;
+    throw error;
+  }
 }
 
 function isMock(activePool) {
@@ -154,27 +183,35 @@ function wrapDbError(dbError) {
  */
 async function createEvent(data, currentUser, customPool = null) {
   checkPermission(currentUser, '新增');
+  // 負責人只能來自登入身分，不使用 request body 的 manager_id。
+  requireUserId(currentUser);
   const validated = validateEventData(data);
   const activePool = customPool || pool;
 
   if (isMock(activePool)) {
-    const newEvent = { id: mockIdCounter++, ...validated, created_at: new Date().toISOString() };
+    const newEvent = {
+      id: mockIdCounter++,
+      ...validated,
+      manager_id: currentUser.id,
+      created_at: new Date().toISOString()
+    };
     mockEvents.push(newEvent);
     return { ...newEvent };
   }
 
   try {
     const result = await activePool.query(
-      `INSERT INTO events (title, description, location, starts_at, ends_at,
+      `INSERT INTO events (title, description, location, starts_at, ends_at, manager_id,
          registration_opens_at, registration_closes_at, is_published, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-       RETURNING ${EVENT_COLUMNS}`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+       RETURNING ${EVENT_COLUMNS}, manager_id`,
       [
         validated.title,
         validated.description,
         validated.location,
         validated.starts_at,
         validated.ends_at,
+        currentUser.id,
         validated.registration_opens_at,
         validated.registration_closes_at,
         validated.is_published
@@ -192,7 +229,7 @@ async function createEvent(data, currentUser, customPool = null) {
  */
 async function updateEvent(id, data, currentUser, customPool = null) {
   checkPermission(currentUser, '修改');
-  if (!Number.isInteger(id) || id <= 0) {
+  if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {
     throw badRequest('活動編號必須為正整數');
   }
   const validated = validateEventData(data);
@@ -205,19 +242,28 @@ async function updateEvent(id, data, currentUser, customPool = null) {
   };
 
   if (isMock(activePool)) {
-    const target = mockEvents.find(e => e.id === id);
+    const target = mockEvents.find(e => String(e.id) === String(id));
     if (!target) throw notFound();
+    checkOwnership(target, currentUser);
     Object.assign(target, validated);
     return { ...target };
   }
 
   try {
+    // 先確認活動存在與負責人，再更新（負責人欄位不允許經由此 API 變更）
+    const existing = await activePool.query(
+      'SELECT id, manager_id FROM events WHERE id = $1',
+      [id]
+    );
+    if (existing.rows.length === 0) throw notFound();
+    checkOwnership(existing.rows[0], currentUser);
+
     const result = await activePool.query(
       `UPDATE events
        SET title = $1, description = $2, location = $3, starts_at = $4, ends_at = $5,
            registration_opens_at = $6, registration_closes_at = $7, is_published = $8
        WHERE id = $9
-       RETURNING ${EVENT_COLUMNS}`,
+       RETURNING ${EVENT_COLUMNS}, manager_id`,
       [
         validated.title,
         validated.description,
@@ -280,7 +326,7 @@ async function getEventById(id, customPool = null) {
   const activePool = customPool || pool;
 
   if (isMock(activePool)) {
-    const found = mockEvents.find(e => e.id === id);
+    const found = mockEvents.find(e => String(e.id) === String(id));
     return found ? { ...found } : null;
   }
 
