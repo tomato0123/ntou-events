@@ -50,7 +50,7 @@ npm.cmd start
 
 所有步驟使用獨立本機／專用測試 DB；先確認連線身分與資料庫，再備份。不得拿共用正式 DB 做本次自動驗收。
 
-新 DB：建立空白 PostgreSQL database 後，只執行一次 `database/schema.sql`，不再重跑三個 migration。它包含 users/events/registrations、manager_id/FK、活動報名期間／is_published、email_verified_at、email_verification_tokens/deliveries/sources 及兩個唯一索引。
+新 DB：建立空白 PostgreSQL database 後，只執行一次 `database/schema.sql`，不要另外重跑既有資料庫的 migration。它包含 users/events/registrations、manager_id/FK、活動報名期間／is_published、email_verified_at、email_verification_tokens/deliveries/sources 及兩個唯一索引。
 
 既有 DB：不要重跑 schema；在根目錄執行以下，連線由安全的 PG*／pgpass 提供，不把密碼寫入命令或 Git：
 
