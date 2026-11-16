@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="活動管理者與系統管理員建立、編輯校園活動。">
+  <title>活動建立與編輯｜海大活動報名系統</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="event-form.css">
+  <script src="event-form.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="海大活動報名系統首頁"><span class="brand-mark" aria-hidden="true">海</span><span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span></a>
+      <nav aria-label="主要導覽"><a href="index.html">活動探索</a><a class="nav-active" href="event-form.html" aria-current="page">活動管理</a></nav>
+    </div>
+  </header>
+
+  <main id="main" class="manage-main">
+    <div class="manage-heading">
+      <p class="eyebrow">EVENT MANAGEMENT</p>
+      <h1 id="form-title">建立活動</h1>
+      <p class="manage-hint">僅限活動管理者與系統管理員使用。時間一律以台北時間（UTC+8）填寫。</p>
+    </div>
+
+    <!-- 登入區：尚未登入或權限不足時顯示 -->
+    <section id="login-panel" class="manage-card" aria-labelledby="login-title" hidden>
+      <h2 id="login-title">管理者登入</h2>
+      <form id="login-form" class="form-grid" novalidate>
+        <div class="field">
+          <label for="login-email">電子信箱 <span class="required" aria-hidden="true">*</span></label>
+          <input id="login-email" name="email" type="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-password">密碼 <span class="required" aria-hidden="true">*</span></label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <div class="form-actions field-wide">
+          <button class="button" type="submit">登入</button>
+        </div>
+      </form>
+      <p id="login-status" class="form-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- 活動表單：管理者登入後顯示 -->
+    <section id="editor-panel" class="manage-card" aria-labelledby="form-title" hidden>
+      <div class="account-bar">
+        <span id="account-info"></span>
+        <button id="logout" class="button button-outline button-small" type="button">登出</button>
+      </div>
+
+      <div class="field picker">
+        <label for="event-picker">選擇要編輯的活動</label>
+        <select id="event-picker">
+          <option value="">＋ 建立新活動</option>
+        </select>
+        <p id="picker-status" class="field-note" role="status" aria-live="polite"></p>
+      </div>
+
+      <form id="event-form" class="form-grid" novalidate>
+        <div class="field field-wide">
+          <label for="title">活動名稱 <span class="required" aria-hidden="true">*</span></label>
+          <input id="title" name="title" type="text" maxlength="100" required aria-describedby="title-error">
+          <p id="title-error" class="field-error"></p>
+        </div>
+
+        <div class="field field-wide">
+          <label for="description">活動說明 <span class="required" aria-hidden="true">*</span></label>
+          <textarea id="description" name="description" rows="5" required aria-describedby="description-error"></textarea>
+          <p id="description-error" class="field-error"></p>
+        </div>
+
+        <div class="field field-wide">
+          <label for="location">活動地點 <span class="required" aria-hidden="true">*</span></label>
+          <input id="location" name="location" type="text" maxlength="200" required aria-describedby="location-error">
+          <p id="location-error" class="field-error"></p>
+        </div>
+
+        <fieldset class="field-wide time-group">
+          <legend>報名期間</legend>
+          <div class="field">
+            <label for="registration_opens_at">報名開始 <span class="required" aria-hidden="true">*</span></label>
+            <input id="registration_opens_at" name="registration_opens_at" type="datetime-local" required aria-describedby="registration_opens_at-error">
+            <p id="registration_opens_at-error" class="field-error"></p>
+          </div>
+          <div class="field">
+            <label for="registration_closes_at">報名截止 <span class="required" aria-hidden="true">*</span></label>
+            <input id="registration_closes_at" name="registration_closes_at" type="datetime-local" required aria-describedby="registration_closes_at-error">
+            <p id="registration_closes_at-error" class="field-error"></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="field-wide time-group">
+          <legend>活動時間</legend>
+          <div class="field">
+            <label for="starts_at">活動開始 <span class="required" aria-hidden="true">*</span></label>
+            <input id="starts_at" name="starts_at" type="datetime-local" required aria-describedby="starts_at-error">
+            <p id="starts_at-error" class="field-error"></p>
+          </div>
+          <div class="field">
+            <label for="ends_at">活動結束 <span class="required" aria-hidden="true">*</span></label>
+            <input id="ends_at" name="ends_at" type="datetime-local" required aria-describedby="ends_at-error">
+            <p id="ends_at-error" class="field-error"></p>
+          </div>
+        </fieldset>
+        <p class="field-note field-wide">時間順序須為：報名開始 &lt; 報名截止 ≤ 活動開始 &lt; 活動結束。</p>
+
+        <div class="field field-wide check-field">
+          <input id="is_published" name="is_published" type="checkbox">
+          <label for="is_published">公開發布（勾選後訪客即可搜尋與查看；未勾選則存為未公開）</label>
+        </div>
+
+        <div class="form-actions field-wide">
+          <button id="submit-button" class="button" type="submit">建立活動</button>
+          <button id="reset-button" class="button button-outline" type="button">清空表單</button>
+        </div>
+      </form>
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer><a class="footer-brand" href="index.html">海大活動報名系統</a><p>國立臺灣海洋大學 · 校園活動探索</p><span>學生專案 · 非官方網站</span></footer>
+</body>
+</html>

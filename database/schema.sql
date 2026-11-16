@@ -32,11 +32,18 @@ CREATE TABLE public.events (
     location VARCHAR(200) NOT NULL,
     starts_at TIMESTAMP WITH TIME ZONE NOT NULL,
     ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    registration_opens_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    registration_closes_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_published BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
         DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT events_time_valid
-        CHECK (ends_at > starts_at)
+        CHECK (ends_at > starts_at),
+    CONSTRAINT events_registration_period_valid
+        CHECK (registration_opens_at < registration_closes_at),
+    CONSTRAINT events_registration_before_start
+        CHECK (registration_closes_at <= starts_at)
 );
 
 -- 報名紀錄
