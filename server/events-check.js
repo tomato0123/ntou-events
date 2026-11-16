@@ -16,6 +16,7 @@ const {
   getAllEvents,
   mockEvents
 } = require('./event-service');
+const { mockUsers } = require('./registration-service');
 
 // 準備測試帳號
 const adminUser = { id: 99, name: '測試管理員', email: 'admin@ntou.edu.tw', role: 'admin' };
@@ -190,12 +191,16 @@ async function runApiHttpTests() {
   console.log('第二階段：Express HTTP API 規格整合測試');
   console.log('========================================');
 
+  mockUsers.length = 0;
+  mockUsers.push({ ...adminUser }, { ...managerUser }, { ...normalUser });
+
   // 在動態連接埠啟動測試伺服器
   const server = app.listen(0);
   const port = server.address().port;
   const baseUrl = `http://127.0.0.1:${port}/api`;
 
   const adminToken = generateToken(adminUser);
+  const managerToken = generateToken(managerUser);
   const normalUserToken = generateToken(normalUser);
 
   try {
@@ -302,8 +307,29 @@ async function runApiHttpTests() {
     assert(unauthReq.status === 401, '未帶 Token 建立活動回傳 401 Unauthorized');
     assert(unauthBody.error !== undefined, '回傳未登入錯誤訊息');
 
+    // API 測試 4：撤銷活動管理者後，舊 Token 不得建立活動。
+    console.log('\n--- API 測試 4：撤權後舊 Token 立即失效 ---');
+    mockUsers.find(user => user.id === managerUser.id).role = 'user';
+    const revokedReq = await fetch(`${baseUrl}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${managerToken}`
+      },
+      body: JSON.stringify({
+        title: '撤權後不應建立',
+        description: '舊 Token 不得沿用活動管理者權限',
+        location: '測試教室',
+        starts_at: '2026-12-02T13:30:00Z',
+        ends_at: '2026-12-02T16:30:00Z'
+      })
+    });
+    assert(revokedReq.status === 403, '撤權後持舊 Token 建立活動回傳 403 Forbidden');
+    assert((await revokedReq.json()).error?.includes('權限不足'), '撤權後回傳權限不足錯誤');
+
   } finally {
     server.close();
+    mockUsers.length = 0;
   }
 }
 

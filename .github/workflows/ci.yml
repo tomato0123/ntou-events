@@ -1,0 +1,66 @@
+name: Backend CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ntou_events
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ntou_events"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGDATABASE: ntou_events
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      JWT_SECRET: ci-only-secret-with-at-least-32-characters
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci --prefix server
+
+      - name: Run backend tests
+        run: npm test --prefix server
+
+      - name: Validate schema and existing-database migration
+        run: |
+          psql -v ON_ERROR_STOP=1 -f database/schema.sql
+          psql -v ON_ERROR_STOP=1 -c "DROP INDEX public.registrations_one_active"
+          psql -v ON_ERROR_STOP=1 -f database/add_registrations_one_active.sql
+          INDEX_EXISTS=$(psql -tAc "SELECT to_regclass('public.registrations_one_active') IS NOT NULL")
+          test "$INDEX_EXISTS" = "t"
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO users (name, email) VALUES ('CI User', 'ci-user@example.com');
+          INSERT INTO events (title, description, location, manager_id, starts_at, ends_at)
+          VALUES ('CI Event', 'Migration check', 'CI', NULL, NOW(), NOW() + INTERVAL '1 hour');
+          INSERT INTO registrations (user_id, event_id, status) VALUES (1, 1, 'registered');
+          SQL
+          if psql -v ON_ERROR_STOP=1 -c "INSERT INTO registrations (user_id, event_id, status) VALUES (1, 1, 'registered')"; then
+            echo "Migration failed to prevent duplicate active registrations"
+            exit 1
+          fi

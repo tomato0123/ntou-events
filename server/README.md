@@ -102,3 +102,56 @@ node --env-file=.env events-check.js
 ```powershell
 node --env-file=.env registrations-check.js
 ```
+
+---
+
+## US-03／US-04：活動報名與取消本人報名
+
+以下 API 都會從 JWT 取得登入者編號，不接受前端指定其他使用者：
+
+```http
+POST /api/events/101/register
+Authorization: Bearer <jwt>
+
+DELETE /api/users/me/registrations/501
+Authorization: Bearer <jwt>
+```
+
+- 報名成功回傳 `201` 與 `{ "message": "報名成功", "data": ... }`。
+- 同一使用者重複有效報名回傳 `409`。
+- 取消只會更新登入者本人且仍為 `registered` 的紀錄。
+- 別人的、已取消或不存在的報名均回傳 `404`。
+- 取消後保留歷史紀錄，並可再次報名。
+
+既有資料庫請先備份，再執行
+`../database/add_registrations_one_active.sql` 建立防重複有效報名索引。
+
+## US-06：授予與撤銷活動管理者權限
+
+此 API 僅允許 JWT 角色為 `admin` 的系統管理員使用：
+
+```http
+PATCH /api/admin/users/7/role
+Authorization: Bearer <admin-jwt>
+Content-Type: application/json
+
+{ "role": "event_manager" }
+```
+
+- `event_manager`：授予活動管理者權限。
+- `user`：撤銷活動管理者權限。
+- 其他角色回傳 `400`，非 admin 呼叫回傳 `403`。
+- 系統管理員帳號本身不可透過此 API 降權。
+
+執行測試：
+
+```powershell
+npm.cmd run test:us03
+npm.cmd run test:us04
+npm.cmd run test:us06
+npm.cmd test
+```
+
+每個 Pull Request 都會由 `.github/workflows/ci.yml` 執行完整 Node 測試，
+並啟動真實 PostgreSQL 16 建立 schema、移除索引後重跑既有資料庫遷移，
+確認 `add_registrations_one_active.sql` 能重新建立索引，並實際拒絕重複有效報名。

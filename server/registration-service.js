@@ -10,6 +10,26 @@ const mockRegistrations = [];
 // 測試用目前使用者資料；授權不採用 Token 內可能過時的 role。
 const mockUsers = [];
 
+function positiveInteger(value, label) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 2147483647) {
+    const error = new Error(`${label}必須是有效的正整數`);
+    error.statusCode = 400;
+    throw error;
+  }
+  return parsed;
+}
+
+function registrationData(row) {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    event_id: row.event_id,
+    status: row.status,
+    registered_at: row.registered_at
+  };
+}
+
 function checkManagerPermission(currentUser) {
   if (!currentUser) {
     const error = new Error('未登入或憑證無效');
@@ -40,7 +60,7 @@ function checkEventOwner(event, currentUser) {
   }
 }
 
-async function getCurrentManager(currentUser, activePool, isMockMode) {
+async function resolveCurrentUser(currentUser, activePool, isMockMode) {
   if (!currentUser || !Number.isInteger(currentUser.id) ||
       currentUser.id <= 0 || currentUser.id > 2147483647) {
     const error = new Error('未登入或憑證無效');
@@ -49,7 +69,26 @@ async function getCurrentManager(currentUser, activePool, isMockMode) {
   }
   const user = isMockMode
     ? mockUsers.find(item => item.id === currentUser.id)
-    : (await activePool.query('SELECT id, role FROM users WHERE id = $1', [currentUser.id])).rows[0];
+    : (await activePool.query(
+      'SELECT id, role FROM users WHERE id = $1',
+      [currentUser.id]
+    )).rows[0];
+  if (!user) {
+    const error = new Error('登入帳號不存在或已失效');
+    error.statusCode = 401;
+    throw error;
+  }
+  return user;
+}
+
+async function getCurrentUser(currentUser, customPool = null) {
+  const activePool = customPool || pool;
+  const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
+  return resolveCurrentUser(currentUser, activePool, isMockMode);
+}
+
+async function getCurrentManager(currentUser, activePool, isMockMode) {
+  const user = await resolveCurrentUser(currentUser, activePool, isMockMode);
   checkManagerPermission(user);
   return user;
 }
@@ -73,18 +112,121 @@ async function getManagedEvents(currentUser, customPool = null) {
   })) };
 }
 
-async function getMyRegistrations(userId, customPool = null) {
-  if (!Number.isInteger(userId) || userId <= 0) {
-    const error = new Error('使用者編號必須是正整數');
-    error.statusCode = 400;
-    throw error;
-  }
-
+async function registerForEvent(userId, eventId, customPool = null) {
+  const safeUserId = positiveInteger(userId, '使用者編號');
+  const safeEventId = positiveInteger(eventId, '活動編號');
   const activePool = customPool || pool;
   const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
 
   if (isMockMode) {
-    const list = mockRegistrations.filter(r => r.user_id === userId);
+    if (!mockEvents.some(event => event.id === safeEventId)) {
+      const error = new Error('找不到該活動');
+      error.statusCode = 404;
+      throw error;
+    }
+    if (mockRegistrations.some(registration =>
+      registration.user_id === safeUserId &&
+      registration.event_id === safeEventId &&
+      registration.status === 'registered')) {
+      const error = new Error('您已報名過此活動，請勿重複報名');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const registration = {
+      id: mockRegistrations.reduce((max, item) => Math.max(max, item.id), 0) + 1,
+      user_id: safeUserId,
+      event_id: safeEventId,
+      status: 'registered',
+      registered_at: new Date().toISOString()
+    };
+    mockRegistrations.push(registration);
+    return registrationData(registration);
+  }
+
+  const client = await activePool.connect();
+  try {
+    await client.query('BEGIN');
+    const eventResult = await client.query(
+      'SELECT id FROM events WHERE id = $1',
+      [safeEventId]
+    );
+    if (eventResult.rowCount === 0) {
+      const error = new Error('找不到該活動');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const result = await client.query(
+      `INSERT INTO registrations (user_id, event_id, status)
+       VALUES ($1, $2, 'registered')
+       RETURNING id, user_id, event_id, status, registered_at`,
+      [safeUserId, safeEventId]
+    );
+    await client.query('COMMIT');
+    return registrationData(result.rows[0]);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    if (error.code === '23505') {
+      const duplicate = new Error('您已報名過此活動，請勿重複報名');
+      duplicate.statusCode = 409;
+      throw duplicate;
+    }
+    if (error.code === '23503') {
+      const missing = new Error('找不到使用者或活動');
+      missing.statusCode = 404;
+      throw missing;
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function cancelMyRegistration(userId, registrationId, customPool = null) {
+  const safeUserId = positiveInteger(userId, '使用者編號');
+  const safeRegistrationId = positiveInteger(registrationId, '報名編號');
+  const activePool = customPool || pool;
+  const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
+
+  if (isMockMode) {
+    const registration = mockRegistrations.find(item =>
+      item.id === safeRegistrationId &&
+      item.user_id === safeUserId &&
+      item.status === 'registered');
+    if (!registration) {
+      const error = new Error('找不到可取消的本人有效報名');
+      error.statusCode = 404;
+      throw error;
+    }
+    registration.status = 'cancelled';
+    return registrationData(registration);
+  }
+
+  const result = await activePool.query(
+    `UPDATE registrations
+     SET status = 'cancelled'
+     WHERE id = $1
+       AND user_id = $2
+       AND status = 'registered'
+     RETURNING id, user_id, event_id, status, registered_at`,
+    [safeRegistrationId, safeUserId]
+  );
+  if (result.rowCount === 0) {
+    const error = new Error('找不到可取消的本人有效報名');
+    error.statusCode = 404;
+    throw error;
+  }
+  return registrationData(result.rows[0]);
+}
+
+async function getMyRegistrations(userId, customPool = null) {
+  const safeUserId = positiveInteger(userId, '使用者編號');
+  const activePool = customPool || pool;
+  const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
+
+  if (isMockMode) {
+    const list = mockRegistrations.filter(r => r.user_id === safeUserId);
     return { data: list };
   }
 
@@ -103,7 +245,7 @@ async function getMyRegistrations(userId, customPool = null) {
      JOIN events AS e ON r.event_id = e.id
      WHERE r.user_id = $1
      ORDER BY r.registered_at DESC, r.id DESC`,
-    [userId]
+    [safeUserId]
   );
 
   return {
@@ -214,6 +356,9 @@ async function closeDatabase() {
 }
 
 module.exports = {
+  registerForEvent,
+  cancelMyRegistration,
+  getCurrentUser,
   getMyRegistrations,
   getEventRegistrations,
   getManagedEvents,
