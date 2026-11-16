@@ -12,10 +12,11 @@ const {
 } = require('./auth-middleware');
 const {
   getMyRegistrations,
-  registerForEvent
+  registerForEvent,
+  pool: registrationPool
 } = require('./registration-service');
 
-function createApp({authService} = {}) {
+function createApp({authService, database = registrationPool} = {}) {
 const app = express();
 
 // 允許跨來源請求與 JSON 解析
@@ -115,7 +116,7 @@ app.post(
 // ==========================================
 
 app.post('/api/events/:id/register',authenticateToken,authRoute(async(req,res)=>{
- const data=await registerForEvent(req.user.id,req.params.id);
+ const data=await registerForEvent(req.user.id,req.params.id,database);
  res.status(201).json({message:'報名成功',data});
 }));
 

@@ -7,7 +7,7 @@ const settings={domains:['campus.example'],url:'http://127.0.0.1:8000',ttl:1440}
 const input={name:' 同學 ',email:' A@campus.example ',password:' password ',campus_identity:'teacher',role:'admin',email_verified:true};
 // 受控 SQL adapter，不等同 PostgreSQL：模擬鎖序列、交易回滾及 DB 時間。
 function fixture() {
- let state={users:[],tokens:[],deliveries:[],sources:{}}; let tail=Promise.resolve(); let failUpdate=false;
+ let state={users:[],tokens:[],deliveries:[],sources:{},registrations:[]}; let tail=Promise.resolve(); let failUpdate=false;
  const query=async(sql,args=[])=>{
   let rows=[]; const [a,b,c,d,e]=args;
   if(sql.startsWith('INSERT INTO users')) {
@@ -24,6 +24,8 @@ function fixture() {
   else if(sql.startsWith('UPDATE email_verification_tokens')) state.tokens.find(t=>t.id===a).used_at=new Date();
   else if(sql.startsWith('UPDATE users')) {if(failUpdate) throw new Error('controlled write failure');state.users.find(u=>u.id===a).email_verified_at=new Date();}
   else if(sql.includes('FROM users WHERE lower')) rows=state.users.filter(u=>u.email===a);
+  else if(sql.startsWith('SELECT * FROM events')) rows=[{id:a,starts_at:'2099-01-01T00:00:00Z'}];
+  else if(sql.startsWith('INSERT INTO registrations')) {if(state.registrations.some(x=>x.user_id===a && x.event_id===b)) throw Object.assign(new Error(),{code:'23505'});const registration={id:state.registrations.length+1,user_id:a,event_id:b,status:'registered'};state.registrations.push(registration);rows=[registration];}
   else if(sql.includes('FROM users WHERE id=')) rows=state.users.filter(u=>u.id===a);
   else throw new Error(`Unexpected SQL ${sql}`);
   return {rows,rowCount:rows.length};
@@ -31,7 +33,7 @@ function fixture() {
  const database={query,async connect(){let release;const old=tail;tail=new Promise(r=>release=r);await old;let snapshot;return {async query(sql,args){if(sql==='BEGIN'){snapshot=structuredClone(state);return {rows:[]};}if(sql==='COMMIT')return {rows:[]};if(sql==='ROLLBACK'){state=snapshot;return {rows:[]};}return query(sql,args);},release};}};
  let mailFails=false;const mails=[];
  const service=createAuthService({database,settings,sendMail:async m=>{if(mailFails)throw new Error('controlled SMTP failure');mails.push(m);}});
- return {service,mails,get state(){return state;},set mailFails(v){mailFails=v;},set failUpdate(v){failUpdate=v;},token:()=>mails.at(-1).text.match(/#token=([\w-]+)/)[1]};
+ return {service,database,mails,get state(){return state;},set mailFails(v){mailFails=v;},set failUpdate(v){failUpdate=v;},token:()=>mails.at(-1).text.match(/#token=([\w-]+)/)[1]};
 }
 test('設定缺漏拒絕啟動；精確網域、欄位與公開角色白名單',()=>{
  assert.throws(()=>config({}),/ALLOWED/);
@@ -85,4 +87,18 @@ test('HTTP 契約 register data、login user、裸 /me、狀態碼及靜態隔�
   assert.equal((await req('/api/auth/verify-email',{token:'bad'})).status,400);
   for(const path of ['/server/.env','/database/schema.sql','/server/auth-service.js','/server/tests/auth.test.js']) assert.equal((await fetch(base+path)).status,404);
  } finally { await new Promise(r=>server.close(r)); }
+});
+
+test('整合 HTTP：未驗證直接報名無寫入，驗證後沿用原 JWT 成功報名',async()=>{
+ const f=fixture();const app=require('../index').createApp({authService:f.service,database:f.database});const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const base=`http://127.0.0.1:${server.address().port}`;
+ const req=async(path,body,token)=>{const res=await fetch(base+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},...(body?{body:JSON.stringify(body)}:{})});return {status:res.status,body:await res.json()};};
+ try{
+  assert.equal((await req('/api/auth/register',input)).status,201);
+  const {body:{token}}=await req('/api/auth/login',input);
+  assert.equal((await req('/api/events/1/register',{},token)).status,403);assert.equal(f.state.registrations.length,0);
+  assert.equal((await req('/api/auth/verify-email',{token:f.token()})).status,200);
+  assert.equal((await req('/api/users/me',null,token)).body.email_verified,true);
+  assert.equal((await req('/api/events/1/register',{},token)).status,201);assert.equal(f.state.registrations.length,1);
+  assert.equal((await req('/api/events/1/register',{},token)).status,409);assert.equal(f.state.registrations.length,1);
+ }finally{await new Promise(r=>server.close(r));}
 });

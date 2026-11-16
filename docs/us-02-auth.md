@@ -38,11 +38,11 @@ User：id,name,email,role,campus_identity,gender,email_verified,email_verified_a
 
 在專案根目錄執行 `npm ci`，複製 server/.env.example 為 server/.env 並填值。新 DB 只執行 database/schema.sql；既有 DB 先備份，依序執行 database/add_auth_email_verification.sql、database/add_registrations_one_active.sql。碰撞／重複報名先人工處理，不刪資料。
 
-必要：PG* 或 DATABASE_URL（pg 既有設定）、JWT_SECRET 隨機密鑰、ALLOWED_CAMPUS_EMAIL_DOMAINS 小組正式清單、SMTP_HOST/PORT/SECURE、SMTP_USER/PASS（需要認證時）、MAIL_FROM、PUBLIC_APP_URL 可信 HTTPS origin（本機 localhost HTTP 可用）。EMAIL_VERIFICATION_TTL_MINUTES 預設 1440。範例 campus.example 只是測試，不是核准校園網域。缺少關鍵設定啟動會拒絕。根目錄 `npm start`，網址 http://127.0.0.1:8000；頁面須整合 UI-03。驗證信路徑 `/verify-email.html#token=...`。
+必要：PG*（pg 既有設定）、JWT_SECRET 隨機密鑰、ALLOWED_CAMPUS_EMAIL_DOMAINS 小組正式清單、SMTP_HOST/PORT/SECURE、SMTP_USER/PASS（需要認證時）、MAIL_FROM、PUBLIC_APP_URL 可信 HTTPS origin（本機 localhost HTTP 可用）。EMAIL_VERIFICATION_TTL_MINUTES 預設 1440。範例 campus.example 只是測試，不是核准校園網域。缺少關鍵設定啟動會拒絕。根目錄 `npm start`，網址 http://127.0.0.1:8000；頁面須整合 UI-03。驗證信路徑 `/verify-email.html#token=...`。
 
 ## 驗證與限制
 
-`npm run test:us02`：9 項通過（SQL adapter 與真實 loopback HTTP；非 PostgreSQL／SMTP 驗收）。涵蓋 U01–10、U15 的輸入、雜湊、角色、生命週期、回滾、併發模型、HTTP；U11 mock 未驗證報名無寫入。`node server/events-check.js`：使用 mock events 與受控身分，須 24 項通過。`node server/registrations-check.js` 已嘗試，缺少本機 DB 連線無法驗收。
+`npm run test:us02`：10 項通過（SQL adapter 與真實 loopback HTTP；非 PostgreSQL／SMTP 驗收）。涵蓋 U01–10、U15 的輸入、雜湊、角色、生命週期、回滾、併發模型、HTTP；U11/12 另有完整 HTTP + SQL adapter 整合：未驗證直接報名無寫入，驗證後沿用同一 JWT 報名成功且重複 409。此項仍非真實 PostgreSQL。`node server/events-check.js`：使用 mock events 與受控身分，須 24 項通過。`node server/registrations-check.js` 已嘗試，缺少本機 DB 連線無法驗收。
 
 真實 PostgreSQL 鎖競爭、migration、重啟持久化（U03/07/08/11/12/15/16）、SMTP 實際接收與校園收信（U04/16）、完整 F18、其他尚未合併 US-06/08 的整合 U14 均未執行。須用專用測試 DB，並提供正式網域與 SMTP 後跑完整流程；不可把 mock 當真實驗收。schema 尚無活動公開狀態／報名期間欄位，檢查只在欄位存在時套用；合併其他故事時應保留其完整規則。
 
