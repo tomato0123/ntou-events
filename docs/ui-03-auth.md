@@ -34,3 +34,13 @@ POST /api/auth/register → 201 {message,data:User,verification_email:{status:se
 F18：小組須提供正式校園網域、專用 PostgreSQL、SMTP 與真實收件信箱後，執行註冊→收信→明確驗證→登入→合法報名，以及未驗證直接 API 報名無新增列。現有環境沒有提供，不能宣稱已完成。跨分頁以返回焦點／重新確認更新，sessionStorage 不跨分頁共享。登出僅此分頁，複製 JWT 可有效至到期。
 
 兩分支本機驗證分支另行合併測試，不推送驗證分支，不合併 main、不刪除 branch_Zhang。若其他組員 UI-06 已新增同檔案，應保留既有模組與管理功能；此分支的 session 檔案與其來源相同。
+
+## 2026-11-16 最終本機整合紀錄
+
+- 本機驗證分支：verify/us02-ui03-20261116-final，功能整合 commit `8f6b76f2593485fa4f9133d733ab69ae25e4fef2`。
+- 來源：US-02 `14e37c1`、UI-03 `11e4123`；從同一基底各自提交，合併無衝突。此段之後僅補交付文件。
+- 整合後：10 項帳號服務／HTTP 測試、13 項 DOM/mock HTTP、24 項既有活動檢查全通過；語法檢查及 diff whitespace 檢查通過。
+- 真實 loopback HTTP 靜態查核：首頁、四個帳號頁及所需資源共 13 個入口回 200；.git/config、server/.env、database/schema.sql、tests/preview-ui03.js 均回 404，未公開。
+- 已測 HTTP + SQL adapter 的註冊→登入→未驗證直接報名 403 無寫入→驗證→同 JWT /me 更新→報名 201→重複 409。這是受控資料與郵件 adapter，不代表實際 PostgreSQL 或校園郵件已驗收。
+- node server/registrations-check.js 因缺本機 DB 連線未完成；真實 migration、鎖競爭、重啟持久化、SMTP／校園收件及 F18 仍未驗收。正式校園網域與 SMTP 需小組提供，範例不是學校核准資料。
+- 原 main、branch_Zhang 及本機備份保留；只推送 US-02 與 UI-03，驗證分支保留本機。建議團隊先審 US-02，再審 UI-03；完整介面流程需要兩者合併。
