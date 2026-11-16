@@ -12,10 +12,15 @@ const {
   generateToken
 } = require('./auth-middleware');
 const {
+  registerForEvent,
+  cancelMyRegistration,
   getMyRegistrations,
   getEventRegistrations,
   getManagedEvents
 } = require('./registration-service');
+const {
+  setEventManagerPermission
+} = require('./user-role-service');
 
 const app = express();
 
@@ -76,6 +81,36 @@ app.post('/api/auth/login', (req, res) => {
     user
   });
 });
+
+function createSetEventManagerPermissionHandler(
+  setPermission = setEventManagerPermission
+) {
+  return async (req, res) => {
+    try {
+      const data = await setPermission(req.params.id, req.body?.role);
+      res.json({
+        message: data.role === 'event_manager'
+          ? '已授予活動管理者權限'
+          : '已撤銷活動管理者權限',
+        data
+      });
+    } catch (error) {
+      const status = error.statusCode || 500;
+      if (status >= 500) console.error('變更活動管理者權限失敗：', error.message);
+      res.status(status).json({
+        error: status >= 500 ? '變更活動管理者權限失敗' : error.message
+      });
+    }
+  };
+}
+
+// 1.3 授予或撤銷活動管理者權限 (US-06，僅系統管理員)
+app.patch(
+  '/api/admin/users/:id/role',
+  authenticateToken,
+  requireRole('admin'),
+  createSetEventManagerPermissionHandler()
+);
 
 // ==========================================
 // 2. 活動模組 (Events)
@@ -147,6 +182,50 @@ app.get('/api/users/me/registrations', authenticateToken, async (req, res) => {
   }
 });
 
+function createRegisterForEventHandler(register = registerForEvent) {
+  return async (req, res) => {
+    try {
+      const data = await register(req.user.id, req.params.id);
+      res.status(201).json({ message: '報名成功', data });
+    } catch (error) {
+      const status = error.statusCode || 500;
+      if (status >= 500) console.error('活動報名失敗：', error.message);
+      res.status(status).json({
+        error: status >= 500 ? '活動報名失敗' : error.message
+      });
+    }
+  };
+}
+
+function createCancelRegistrationHandler(cancel = cancelMyRegistration) {
+  return async (req, res) => {
+    try {
+      const data = await cancel(req.user.id, req.params.id);
+      res.json({ message: '取消報名成功', data });
+    } catch (error) {
+      const status = error.statusCode || 500;
+      if (status >= 500) console.error('取消報名失敗：', error.message);
+      res.status(status).json({
+        error: status >= 500 ? '取消報名失敗' : error.message
+      });
+    }
+  };
+}
+
+// 3.3 登入者報名活動 (US-03)
+app.post(
+  '/api/events/:id/register',
+  authenticateToken,
+  createRegisterForEventHandler()
+);
+
+// 3.4 登入者取消本人的有效報名 (US-04)
+app.delete(
+  '/api/users/me/registrations/:id',
+  authenticateToken,
+  createCancelRegistrationHandler()
+);
+
 // 3.3 管理者查看特定活動的正式與取消名單 (US-08)
 function privateResponse(req, res, next) {
   res.set('Cache-Control', 'no-store');
@@ -199,3 +278,7 @@ if (require.main === module) {
 }
 
 module.exports = app;
+module.exports.createRegisterForEventHandler = createRegisterForEventHandler;
+module.exports.createCancelRegistrationHandler = createCancelRegistrationHandler;
+module.exports.createSetEventManagerPermissionHandler =
+  createSetEventManagerPermissionHandler;
