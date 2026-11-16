@@ -6,6 +6,8 @@
   <meta name="description" content="探索海大校園講座、社團與體育活動。">
   <title>活動探索｜海大活動報名系統</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="account.css">
+  <script src="api-config.js" defer></script><script src="auth-session.js" defer></script><script src="auth-client.js" defer></script><script src="account.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -13,10 +15,11 @@
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="index.html" aria-label="海大活動報名系統首頁"><span class="brand-mark" aria-hidden="true">海</span><span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span></a>
-      <nav aria-label="主要導覽"><a class="nav-active" href="#events" aria-current="page">活動探索</a><button class="nav-button" data-account>我的報名</button></nav>
-      <button class="button button-small" data-account>登入 <span aria-hidden="true">↗</span></button>
+      <nav aria-label="主要導覽"><a class="nav-active" href="#events" aria-current="page">活動探索</a><button class="nav-button" data-my-registrations>我的報名</button></nav>
+      <div class="account-header"><a class="button button-small" href="login.html" data-guest>登入</a><a href="register.html" data-guest>註冊</a><span data-user-name data-member hidden></span><button class="button button-small" data-logout data-member hidden>登出</button></div>
     </div>
   </header>
+  <aside class="account-pending" data-pending hidden>尚未完成校園 Email 驗證。<a href="resend-verification.html">重新寄送驗證信</a> <button type="button" data-refresh-account>我已驗證，重新確認</button></aside><p id="home-account-status" role="status" aria-live="polite"></p>
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-inner">

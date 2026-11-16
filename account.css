@@ -1,0 +1,14 @@
+/* 帳號專用樣式，不修改活動頁既有規則。 */
+.account-shell{max-width:520px;margin:48px auto;padding:0 20px;min-height:65vh}
+.account-card{background:#fff;border:1px solid #d8e6e6;border-radius:20px;padding:30px;box-shadow:0 14px 40px #194d4d0a}
+.account-card h1{font-size:1.8rem;margin:12px 0}.account-card p{line-height:1.75}.account-card form{display:grid;gap:16px;margin:24px 0}
+.account-card label{display:block;font-weight:600;margin-bottom:6px}.account-card input,.account-card select{box-sizing:border-box;width:100%;min-height:46px;border:1px solid #91abaa;border-radius:8px;padding:10px 12px;font:inherit;background:white;color:#173b3d}
+.account-card input[aria-invalid=true],.account-card select[aria-invalid=true]{border:2px solid #ae3030}
+.account-card .field-error{color:#9a2525;font-size:.9rem;display:block;margin-top:5px}
+.account-card .account-status{white-space:pre-line;overflow-wrap:anywhere;padding:12px;border-radius:8px;background:#edf5f3;margin:16px 0;line-height:1.7}
+.account-card .account-status:empty{display:none}.account-card .account-links{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px}.account-card a{color:#17675c;text-underline-offset:4px}
+.account-card button:disabled{opacity:.6;cursor:wait}.account-card :focus-visible{outline:3px solid #de9d2b;outline-offset:3px}
+.account-header{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.account-header [data-user-name]{max-width:160px;overflow-wrap:anywhere}.account-pending{display:block;padding:10px 20px;background:#fff4d9;text-align:center;line-height:1.8}
+@media(max-width:540px){.account-shell{margin:24px auto;padding:0 12px}.account-card{padding:22px 18px}.account-header{font-size:.9rem}.account-card h1{font-size:1.5rem}}
+
+.account-pending[hidden],.account-header [hidden]{display:none}
