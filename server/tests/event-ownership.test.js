@@ -18,6 +18,8 @@ const eventInput = {
 test('SQL 建立活動忽略前端指定負責人，保存登入者 ID', async () => {
   const database = { async query(sql, values) {
     assert.match(sql, /manager_id/);
+    assert.match(sql, /FROM users/);
+    assert.match(sql, /users\.role IN \('admin', 'event_manager'\)/);
     assert.equal(values[5], owner.id);
     return { rows: [{ id: 101, title: values[0], description: values[1],
       location: values[2], starts_at: values[3], ends_at: values[4],
@@ -25,6 +27,17 @@ test('SQL 建立活動忽略前端指定負責人，保存登入者 ID', async (
   } };
   const event = await createEvent(eventInput, owner, database);
   assert.equal(event.manager_id, owner.id);
+});
+
+test('SQL 建立活動原子查核資料庫目前角色', async () => {
+  const database = { async query(sql) {
+    assert.match(sql, /FROM users/);
+    return { rows: [] };
+  } };
+  await assert.rejects(
+    createEvent(eventInput, owner, database),
+    { statusCode: 403 }
+  );
 });
 
 test('無有效登入者 ID 不建立活動', async () => {
@@ -111,6 +124,14 @@ test('HTTP：建立者綁定及不同角色／舊活動／不存在活動的歸�
   const oldHeaders = headers(owner);
   mockUsers.find(user => user.id === owner.id).role = 'user';
   assert.equal((await fetch(`${base}/events/${event.id}/registrations`, { headers: oldHeaders })).status, 403);
+  assert.equal((await fetch(`${base}/events`, {
+    method: 'POST',
+    headers: oldHeaders,
+    body: JSON.stringify({
+      ...eventInput,
+      title: '撤權後不可建立活動'
+    })
+  })).status, 403);
   mockUsers.find(user => user.id === owner.id).role = 'event_manager';
   // 舊 Token 是一般使用者，但目前已獲授權時，應依目前角色授權。
   assert.equal((await fetch(`${base}/events/${event.id}/registrations`, {

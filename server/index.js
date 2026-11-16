@@ -14,6 +14,7 @@ const {
 const {
   registerForEvent,
   cancelMyRegistration,
+  getCurrentUser,
   getMyRegistrations,
   getEventRegistrations,
   getManagedEvents
@@ -152,10 +153,11 @@ app.get('/api/events/:id', async (req, res) => {
 app.post(
   '/api/events',
   authenticateToken,
-  requireRole(['admin', 'event_manager']),
   async (req, res) => {
     try {
-      const newEvent = await createEvent(req.body, req.user);
+      // 權限以資料庫目前角色為準，不信任可能已過期的 JWT role。
+      const currentUser = await getCurrentUser(req.user);
+      const newEvent = await createEvent(req.body, currentUser);
       res.status(201).json({
         message: '活動建立成功',
         data: newEvent

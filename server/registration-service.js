@@ -60,7 +60,7 @@ function checkEventOwner(event, currentUser) {
   }
 }
 
-async function getCurrentManager(currentUser, activePool, isMockMode) {
+async function resolveCurrentUser(currentUser, activePool, isMockMode) {
   if (!currentUser || !Number.isInteger(currentUser.id) ||
       currentUser.id <= 0 || currentUser.id > 2147483647) {
     const error = new Error('未登入或憑證無效');
@@ -69,7 +69,26 @@ async function getCurrentManager(currentUser, activePool, isMockMode) {
   }
   const user = isMockMode
     ? mockUsers.find(item => item.id === currentUser.id)
-    : (await activePool.query('SELECT id, role FROM users WHERE id = $1', [currentUser.id])).rows[0];
+    : (await activePool.query(
+      'SELECT id, role FROM users WHERE id = $1',
+      [currentUser.id]
+    )).rows[0];
+  if (!user) {
+    const error = new Error('登入帳號不存在或已失效');
+    error.statusCode = 401;
+    throw error;
+  }
+  return user;
+}
+
+async function getCurrentUser(currentUser, customPool = null) {
+  const activePool = customPool || pool;
+  const isMockMode = process.env.USE_MOCK_DB === 'true' || activePool.isMock;
+  return resolveCurrentUser(currentUser, activePool, isMockMode);
+}
+
+async function getCurrentManager(currentUser, activePool, isMockMode) {
+  const user = await resolveCurrentUser(currentUser, activePool, isMockMode);
   checkManagerPermission(user);
   return user;
 }
@@ -339,6 +358,7 @@ async function closeDatabase() {
 module.exports = {
   registerForEvent,
   cancelMyRegistration,
+  getCurrentUser,
   getMyRegistrations,
   getEventRegistrations,
   getManagedEvents,

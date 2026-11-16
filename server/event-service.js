@@ -188,7 +188,10 @@ async function createEvent(data, currentUser, customPool = null) {
   try {
     const result = await activePool.query(
       `INSERT INTO events (title, description, location, starts_at, ends_at, manager_id, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       SELECT $1, $2, $3, $4, $5, users.id, NOW()
+       FROM users
+       WHERE users.id = $6
+         AND users.role IN ('admin', 'event_manager')
        RETURNING id, title, description, location, starts_at, ends_at, manager_id, created_at`,
       [
         validated.title,
@@ -199,6 +202,12 @@ async function createEvent(data, currentUser, customPool = null) {
         currentUser.id
       ]
     );
+
+    if (result.rows.length === 0) {
+      const error = new Error('權限不足，僅管理員或活動管理者可建立活動');
+      error.statusCode = 403;
+      throw error;
+    }
 
     const row = result.rows[0];
     return {
