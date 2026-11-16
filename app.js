@@ -1,8 +1,5 @@
 // ===== 設定 =====
-// 若網頁是由後端提供，使用相對路徑；
-// 若用 Live Server 等其他埠開啟，則連到本機後端（後端需開啟 CORS）。
-// 後端埠號：本機後端使用 3000（8000 埠可能被其他程式占用）
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = window.NtouConfig.apiBase;
 
 const PAGE_SIZE = 6;
 

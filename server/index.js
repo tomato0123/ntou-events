@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('node:path');
 const {
   createEvent,
   getAllEvents,
@@ -11,7 +12,9 @@ const {
   generateToken
 } = require('./auth-middleware');
 const {
-  getMyRegistrations
+  getMyRegistrations,
+  getEventRegistrations,
+  getManagedEvents
 } = require('./registration-service');
 
 const app = express();
@@ -19,6 +22,18 @@ const app = express();
 // 允許跨來源請求與 JSON 解析
 app.use(cors());
 app.use(express.json());
+
+// 僅提供明確列出的前端檔案，不公開專案根目錄或 server/.env。
+for (const file of ['index.html', 'styles.css', 'app.js', 'manager.html', 'manager.css',
+  'manager.js', 'auth-session.js']) {
+  app.get(file === 'index.html' ? ['/', '/index.html'] : `/${file}`, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', file));
+  });
+}
+// 後端自行提供網頁時永遠使用同源，支援自訂 PORT 與反向代理。
+app.get('/api-config.js', (req, res) => {
+  res.type('js').send('window.NtouConfig = Object.freeze({ apiBase: "/api" });');
+});
 
 // 健康檢查端點
 app.get('/api/health', (req, res) => {
@@ -131,6 +146,38 @@ app.get('/api/users/me/registrations', authenticateToken, async (req, res) => {
     res.status(error.statusCode || 500).json({ error: error.message });
   }
 });
+
+// 3.3 管理者查看特定活動的正式與取消名單 (US-08)
+function privateResponse(req, res, next) {
+  res.set('Cache-Control', 'no-store');
+  next();
+}
+
+app.get('/api/manage/events', privateResponse, authenticateToken, async (req, res) => {
+  try {
+    res.json(await getManagedEvents(req.user));
+  } catch (error) {
+    const status = error.statusCode || 500;
+    res.status(status).json({ error: status >= 500 ? '無法載入管理活動，請稍後再試' : error.message });
+  }
+});
+
+app.get('/api/events/:id/registrations', privateResponse, authenticateToken, async (req, res) => {
+    try {
+      const eventId = Number(req.params.id);
+      if (!/^[0-9]+$/.test(req.params.id) || !Number.isInteger(eventId) ||
+          eventId <= 0 || eventId > 2147483647) {
+        return res.status(400).json({ error: '活動編號必須是有效的正整數' });
+      }
+
+      const result = await getEventRegistrations(eventId, req.user, null, req.query.status);
+      res.json(result);
+    } catch (error) {
+      const status = error.statusCode || 500;
+      res.status(status).json({ error: status >= 500 ? '查詢活動名單失敗，請稍後再試' : error.message });
+    }
+  }
+);
 
 // 全域錯誤處理 (符合統一錯誤回傳格式: { "error": "..." })
 app.use((err, req, res, next) => {
