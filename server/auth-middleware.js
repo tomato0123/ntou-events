@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ntou-events-secret-2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+function secret() { if (!process.env.JWT_SECRET) throw new Error('請設定 JWT_SECRET'); return process.env.JWT_SECRET; }
 
 /**
  * 簽發 JWT Token
@@ -15,7 +16,7 @@ function generateToken(payload) {
       email: payload.email,
       role: payload.role || 'user'
     },
-    JWT_SECRET,
+    secret(),
     { expiresIn: '7d' }
   );
 }
@@ -26,7 +27,7 @@ function generateToken(payload) {
  * @returns {object} decoded payload
  */
 function verifyToken(token) {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, secret(), { algorithms: ['HS256'] });
 }
 
 /**
@@ -58,13 +59,17 @@ function authenticateToken(req, res, next) {
  * 檢查角色權限 Middleware
  * @param {string|string[]} allowedRoles - 允許的角色 (例: ['admin', 'event_manager'])
  */
-function requireRole(allowedRoles) {
+function requireRole(allowedRoles, lookup = id => require('./auth-service').createAuthService().me(id)) {
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: '請先登入' });
     }
+
+    try {
+      req.user = await lookup(req.user.id);
+    } catch (error) { return res.status(error.statusCode || 503).json({error:error.statusCode === 401 ? error.message : '身分查核服務暫時無法使用'}); }
 
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ error: '權限不足，操作遭拒絕' });

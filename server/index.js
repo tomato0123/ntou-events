@@ -11,14 +11,16 @@ const {
   generateToken
 } = require('./auth-middleware');
 const {
-  getMyRegistrations
+  getMyRegistrations,
+  registerForEvent
 } = require('./registration-service');
 
+function createApp({authService} = {}) {
 const app = express();
 
 // 允許跨來源請求與 JSON 解析
 app.use(cors());
-app.use(express.json());
+app.use(express.json({limit:'16kb'}));
 
 // 健康檢查端點
 app.get('/api/health', (req, res) => {
@@ -29,38 +31,29 @@ app.get('/api/health', (req, res) => {
 // 1. 身分驗證 (Auth)
 // ==========================================
 
-// 1.2 使用者登入 (提供快速產生測試 Token，包含 role 身分)
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body || {};
-
-  if (!email || !password) {
-    return res.status(400).json({ error: '請輸入電子信箱與密碼' });
+const path = require('node:path');
+const {createAuthService, config} = require('./auth-service');
+const {createMailer} = require('./mail-adapter');
+const auth = authService || createAuthService({sendMail: message => createMailer()(message)});
+const authRoute = fn => async (req,res) => {
+  res.set('Cache-Control','no-store');
+  try { await fn(req,res); } catch(e) {
+    if(e.retryAfter) res.set('Retry-After',String(e.retryAfter));
+    res.status(e.statusCode || 503).json({error:e.statusCode?e.message:'帳號服務暫時無法使用，請稍後重試'});
   }
-
-  // 測試/原型階段模擬帳號權限判斷（依信箱關鍵字分配角色）
-  let role = 'user';
-  let name = '一般學生';
-  let id = 1;
-
-  if (email.includes('admin')) {
-    role = 'admin';
-    name = '系統管理員';
-    id = 99;
-  } else if (email.includes('manager')) {
-    role = 'event_manager';
-    name = '活動管理者';
-    id = 50;
-  }
-
-  const user = { id, name, email, role };
-  const token = generateToken(user);
-
-  res.json({
-    message: '登入成功',
-    token,
-    user
-  });
-});
+};
+app.post('/api/auth/register', authRoute(async(req,res)=>res.status(201).json(await auth.register(req.body || {}))));
+app.post('/api/auth/login', authRoute(async(req,res)=>{
+  const user=await auth.login(req.body || {});
+  res.json({message:'登入成功',token:generateToken(user),user});
+}));
+app.get(['/api/users/me','/api/auth/me'],authenticateToken,authRoute(async(req,res)=>res.json(await auth.me(req.user.id))));
+app.post('/api/auth/verify-email',authRoute(async(req,res)=>res.json(await auth.verify(req.body?.token))));
+app.post('/api/auth/resend-verification',authRoute(async(req,res)=>res.status(202).json(await auth.resend(req.body?.email,req.ip))));
+// 明確白名單：UI-03 提供實體檔案，絕不公開 repo、.env 或測試。
+const publicFiles=['index.html','styles.css','app.js','api-config.js','auth-session.js','auth-client.js','account.js','account.css','login.html','register.html','verify-email.html','resend-verification.html'];
+for(const file of publicFiles) app.get('/'+file,(_req,res)=>res.sendFile(path.join(__dirname,'..',file)));
+app.get('/',(_req,res)=>res.sendFile(path.join(__dirname,'..','index.html')));
 
 // ==========================================
 // 2. 活動模組 (Events)
@@ -102,7 +95,7 @@ app.get('/api/events/:id', async (req, res) => {
 app.post(
   '/api/events',
   authenticateToken,
-  requireRole(['admin', 'event_manager']),
+  requireRole(['admin', 'event_manager'], id => auth.me(id)),
   async (req, res) => {
     try {
       const newEvent = await createEvent(req.body, req.user);
@@ -121,6 +114,11 @@ app.post(
 // 3. 報名模組 (Registrations)
 // ==========================================
 
+app.post('/api/events/:id/register',authenticateToken,authRoute(async(req,res)=>{
+ const data=await registerForEvent(req.user.id,req.params.id);
+ res.status(201).json({message:'報名成功',data});
+}));
+
 // 3.2 查看自己的報名紀錄 (需登入)
 app.get('/api/users/me/registrations', authenticateToken, async (req, res) => {
   try {
@@ -134,21 +132,27 @@ app.get('/api/users/me/registrations', authenticateToken, async (req, res) => {
 
 // 全域錯誤處理 (符合統一錯誤回傳格式: { "error": "..." })
 app.use((err, req, res, next) => {
-  console.error('伺服器錯誤：', err);
+
   const status = err.statusCode || err.status || 500;
   res.status(status).json({
-    error: err.message || '伺服器內部錯誤'
+    error: status >= 500 ? '伺服器內部錯誤' : err.message || '請求格式錯誤'
   });
 });
 
+return app;
+}
+const app=createApp();
 const PORT = process.env.PORT || 8000;
 const HOST = process.env.HOST || '127.0.0.1';
 
 // 僅在直接透過 node index.js 啟動時才監聽 port
 if (require.main === module) {
+  config();
   app.listen(PORT, HOST, () => {
     console.log(`後端已啟動：http://${HOST}:${PORT}`);
   });
 }
 
 module.exports = app;
+
+module.exports.createApp=createApp;

@@ -8,7 +8,12 @@
 
 process.env.USE_MOCK_DB = 'true'; // 啟用測試模式 (亦可相容真實資料庫)
 
-const app = require('./index');
+process.env.JWT_SECRET ||= 'controlled-events-test-secret';
+const app = require('./index').createApp({authService:{async me(id) {
+ const users={99:{id:99,role:'admin'},50:{id:50,role:'event_manager'},1:{id:1,role:'user'}};
+ if(!users[id]) throw Object.assign(new Error('帳號不存在'),{statusCode:401});
+ return users[id];
+}}}); // 受控身分資料；正式 requireRole 仍重新查詢 DB。
 const { generateToken } = require('./auth-middleware');
 const {
   validateEventData,
