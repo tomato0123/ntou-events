@@ -151,3 +151,7 @@ npm.cmd run test:us04
 npm.cmd run test:us06
 npm.cmd test
 ```
+
+每個 Pull Request 都會由 `.github/workflows/ci.yml` 執行完整 Node 測試，
+並啟動真實 PostgreSQL 16 建立 schema、移除索引後重跑既有資料庫遷移，
+確認 `add_registrations_one_active.sql` 能重新建立索引，並實際拒絕重複有效報名。
