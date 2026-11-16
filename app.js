@@ -2,12 +2,23 @@
 // 若網頁是由後端提供，使用相對路徑；
 // 若用 Live Server 等其他埠開啟，則連到本機後端（後端需開啟 CORS）。
 // 後端埠號：本機後端使用 3000（8000 埠可能被其他程式占用）
-const API_BASE = 'http://127.0.0.1:8000/api';
+const BACKEND_PORT = '3000';
+const API_BASE = window.location.port === BACKEND_PORT
+  ? '/api'
+  : `http://localhost:${BACKEND_PORT}/api`;
+
+// 分類清單由後端提供（GET /api/categories），前端不寫死，避免與後端規則不一致
+async function loadCategories() {
+  const response = await fetch(`${API_BASE}/categories`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const json = await response.json();
+  return Array.isArray(json.data) ? json.data : [];
+}
 
 const PAGE_SIZE = 6;
 
 // ===== 狀態 =====
-const state = { query: '', visible: PAGE_SIZE, events: [], loading: false, failed: false };
+const state = { query: '', category: '', categories: [], visible: PAGE_SIZE, events: [], loading: false, failed: false };
 let requestId = 0; // 避免舊的回應覆蓋新的搜尋結果
 
 const grid = document.querySelector('#event-grid');
@@ -16,6 +27,7 @@ const dialog = document.querySelector('#event-dialog');
 const resultCount = document.querySelector('#result-count');
 const emptyState = document.querySelector('#empty-state');
 const loadMore = document.querySelector('#load-more');
+const categoryFilters = document.querySelector('#category-filters');
 
 // ===== 時間格式（統一 Asia/Taipei）=====
 const dateFormat = new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', weekday: 'short' });
@@ -36,11 +48,34 @@ function status(event) {
   return '即將開始';
 }
 
+function categoryLabel(value) {
+  return state.categories.find(c => c.value === value)?.label || value || '未分類';
+}
+
+function isKnownCategory(value) {
+  return state.categories.some(c => c.value === value);
+}
+
 function element(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+// ===== 分類按鈕 =====
+function renderCategoryButtons() {
+  const options = [{ value: '', label: '全部' }, ...state.categories];
+  categoryFilters.replaceChildren(...options.map(({ value, label }) => {
+    const button = element('button', 'filter-chip', label);
+    button.type = 'button';
+    button.setAttribute('aria-pressed', String(state.category === value));
+    button.addEventListener('click', () => {
+      if (state.category !== value) applyFilters({ category: value });
+    });
+    return button;
+  }));
+  categoryFilters.hidden = state.categories.length === 0;
 }
 
 // ===== 活動卡片 =====
@@ -51,6 +86,7 @@ function card(event) {
   const currentStatus = status(event);
   const isOpen = currentStatus === '即將開始';
   top.append(
+    element('span', 'event-category', categoryLabel(event.category)),
     element('span', `event-status${isOpen ? '' : ' closed'}`, `${isOpen ? '● ' : ''}${currentStatus}`)
   );
 
@@ -78,7 +114,7 @@ function card(event) {
 }
 
 // ===== 取得活動列表 =====
-async function fetchEvents(query = '') {
+async function fetchEvents() {
   const currentRequest = ++requestId;
   state.loading = true;
   state.failed = false;
@@ -86,7 +122,8 @@ async function fetchEvents(query = '') {
 
   try {
     const url = new URL(`${API_BASE}/events`, window.location.href);
-    if (query) url.searchParams.set('search', query);
+    if (state.query) url.searchParams.set('search', state.query);
+    if (state.category) url.searchParams.set('category', state.category);
 
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -122,7 +159,7 @@ function render() {
     const message = element('div', 'error');
     const retry = element('button', 'button button-outline', '重新載入');
     retry.type = 'button';
-    retry.addEventListener('click', () => fetchEvents(state.query));
+    retry.addEventListener('click', fetchEvents);
     message.append(element('p', '', '無法載入活動，請確認後端服務已啟動後重試。'), retry);
     grid.replaceChildren(message);
     resultCount.textContent = '';
@@ -131,7 +168,11 @@ function render() {
 
   const total = state.events.length;
   grid.replaceChildren(...state.events.slice(0, state.visible).map(card));
-  resultCount.textContent = `共 ${total} 場活動${state.query ? ` · 搜尋「${state.query}」` : ''}`;
+  const filters = [
+    state.category ? `分類「${categoryLabel(state.category)}」` : '',
+    state.query ? `搜尋「${state.query}」` : ''
+  ].filter(Boolean);
+  resultCount.textContent = `共 ${total} 場活動${filters.length ? ` · ${filters.join(' · ')}` : ''}`;
   emptyState.hidden = total !== 0;
   loadMore.hidden = state.visible >= total;
 }
@@ -148,6 +189,7 @@ function renderDialog(event) {
   const start = new Date(event.starts_at);
   const info = element('dl');
   const rows = [
+    ['活動分類', categoryLabel(event.category)],
     ['日期時間', `${yearFormat.format(start)} / ${eventTime(event)}`],
     ['活動地點', event.location]
   ];
@@ -159,7 +201,7 @@ function renderDialog(event) {
   }
 
   openDialog(
-    status(event),
+    `${categoryLabel(event.category)}・${status(event)}`,
     event.title,
     info,
     element('p', 'dialog-description', event.description),
@@ -179,39 +221,44 @@ async function showEvent(id) {
   }
 }
 
-// ===== 搜尋與網址同步 =====
-function runSearch(query, { pushHistory = true } = {}) {
-  state.query = query.trim();
+// ===== 篩選與網址同步（?q=關鍵字&category=分類）=====
+// changes 只放要改的條件，例如 { category: 'club' }；沒給的條件維持不變
+function applyFilters(changes, { pushHistory = true } = {}) {
+  if ('query' in changes) state.query = changes.query.trim();
+  if ('category' in changes) state.category = isKnownCategory(changes.category) ? changes.category : '';
   state.visible = PAGE_SIZE;
   search.value = state.query;
+  renderCategoryButtons();
 
   if (pushHistory) {
     const url = new URL(window.location.href);
     if (state.query) url.searchParams.set('q', state.query);
     else url.searchParams.delete('q');
+    if (state.category) url.searchParams.set('category', state.category);
+    else url.searchParams.delete('category');
     history.pushState({}, '', url);
   }
-  fetchEvents(state.query);
+  fetchEvents();
 }
 
 function readUrl() {
   const params = new URLSearchParams(window.location.search);
-  runSearch(params.get('q') || '', { pushHistory: false });
+  applyFilters({ query: params.get('q') || '', category: params.get('category') || '' }, { pushHistory: false });
 }
 
 // ===== 事件綁定 =====
 document.querySelector('#search-form').addEventListener('submit', event => {
   event.preventDefault();
-  runSearch(search.value);
+  applyFilters({ query: search.value });
 });
 
-// 清空搜尋框時，自動回到全部活動
+// 清空搜尋框時，自動回到不限關鍵字（分類維持不變）
 search.addEventListener('input', () => {
-  if (search.value === '' && state.query !== '') runSearch('');
+  if (search.value === '' && state.query !== '') applyFilters({ query: '' });
 });
 
 document.querySelector('#clear-filters').addEventListener('click', () => {
-  runSearch('');
+  applyFilters({ query: '', category: '' });
   search.focus();
 });
 
@@ -236,4 +283,14 @@ document.querySelectorAll('[data-account]').forEach(button => button.addEventLis
 }));
 
 window.addEventListener('popstate', readUrl);
-readUrl();
+
+// ===== 啟動：先取得分類，再依網址載入活動 =====
+(async function init() {
+  try {
+    state.categories = await loadCategories();
+  } catch (error) {
+    // 分類載入失敗時仍可瀏覽全部活動，只是不顯示分類按鈕
+    console.error('取得分類失敗：', error);
+  }
+  readUrl();
+})();
