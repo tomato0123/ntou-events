@@ -164,16 +164,8 @@ function renderDialog(event) {
   );
 }
 
-async function showEvent(id) {
-  try {
-    const response = await fetch(`${API_BASE}/events/${encodeURIComponent(id)}`);
-    if (response.status === 404) throw new Error('找不到該活動，可能已被移除或尚未公開。');
-    if (!response.ok) throw new Error(`伺服器回應錯誤（${response.status}）`);
-    renderDialog(await response.json());
-  } catch (error) {
-    console.error('取得活動詳情失敗：', error);
-    openDialog('錯誤', '無法顯示活動', element('p', 'dialog-description', error.message));
-  }
+function showEvent(id) {
+  window.location.href = `event-detail.html?id=${encodeURIComponent(id)}`;
 }
 
 // ===== 搜尋與網址同步 =====

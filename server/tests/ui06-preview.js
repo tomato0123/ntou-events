@@ -21,7 +21,7 @@ mockUsers.push(...Object.values(accounts),
   { id: 103, role: 'user', name: null, email: 'staff@example.test', campus_identity: 'staff', gender: '女' });
 const common = { location: '電資大樓 302', starts_at: '2030-01-01T01:00:00Z', ends_at: '2030-01-01T04:00:00Z' };
 mockEvents.push(
-  { ...common, id: 201, title: '海洋永續講座（測試）', manager_id: 10 },
+  { ...common, id: 201, title: '海洋永續講座（測試）', manager_id: 10, description:'測一個天崩地裂'},
   { ...common, id: 202, title: '校園交流工作坊・空名單（測試）', manager_id: 10 },
   { ...common, id: 203, title: '其他管理者的活動（測試）', manager_id: 20 },
   { ...common, id: 204, title: '尚未指定負責人的活動（測試）', manager_id: null });

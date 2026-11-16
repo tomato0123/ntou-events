@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="查看海大校園活動詳情並進行線上報名。">
+  <title>活動詳情｜海大活動報名系統</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="event-detail.css">
+  <script src="api-config.js" defer></script>
+  <script src="auth-session.js" defer></script>
+  <script src="event-detail.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+
+  <!-- 頂部導覽列（與 index.html 完全對齊，支援 data-account 彈窗） -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="海大活動報名系統首頁">
+        <span class="brand-mark" aria-hidden="true">海</span>
+        <span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span>
+      </a>
+      <nav aria-label="主要導覽">
+        <a href="index.html">活動探索</a>
+        <a href="manager.html">活動管理</a>
+        <button class="nav-button" type="button" id="my-events-btn" data-account>我的報名</button>
+      </nav>
+      <button class="button button-small" type="button" id="auth-action-btn" data-account>登入 <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+
+  <main id="main" class="event-main">
+    <!-- [返回活動列表]（已與上方海大 Logo 左側垂直線完全對齊） -->
+    <div class="back-row">
+      <a class="button button-outline back-link" href="index.html">← 返回活動列表</a>
+    </div>
+
+    <!-- 載入中與錯誤狀態 -->
+    <p id="page-loading" class="loading" role="status">活動資料載入中…</p>
+    <div id="page-error" class="error" hidden>
+      <p id="page-error-text">無法載入活動資訊。</p>
+      <a class="button button-outline" href="index.html">返回活動列表</a>
+    </div>
+
+    <!-- 活動詳情與報名主框 -->
+    <article id="event-detail-box" class="event-detail-card" hidden>
+      <div class="detail-top">
+        <div class="detail-image" id="event-poster" aria-hidden="true">
+          <span class="poster-tag">NTOU CAMPUS</span>
+          <strong id="poster-title">活動圖片</strong>
+        </div>
+
+        <div class="detail-meta-wrap">
+          <p class="eyebrow">EVENT DETAILS</p>
+          <h1 id="event-title">活動名稱</h1>
+          <dl class="detail-dl">
+            <div>
+              <dt>主辦單位：</dt>
+              <dd id="event-organizer">—</dd>
+            </div>
+            <div>
+              <dt>活動時間：</dt>
+              <dd id="event-time">—</dd>
+            </div>
+            <div>
+              <dt>活動地點：</dt>
+              <dd id="event-location">—</dd>
+            </div>
+            <div>
+              <dt>報名期間：</dt>
+              <dd id="event-reg-period">—</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <section class="detail-section" aria-labelledby="desc-title">
+        <h2 id="desc-title">活動說明</h2>
+        <div class="detail-desc-box">
+          <p id="event-description">活動內容、參加方式及注意事項</p>
+        </div>
+      </section>
+
+      <section class="detail-bottom" aria-label="活動報名區">
+        <div class="status-action-bar">
+          <p class="status-line">
+            活動狀態：<span id="event-status-text" class="status-tag">報名開放中</span>
+          </p>
+          <button id="register-btn" class="button" type="button">報名活動</button>
+        </div>
+
+        <div id="status-message-box" class="status-message-box" role="status" aria-live="polite">
+          請確認活動資訊後，點擊「報名活動」進行報名。
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <a class="footer-brand" href="index.html">海大活動報名系統</a>
+    <p>國立臺灣海洋大學 · 校園活動探索</p>
+    <span>學生專案 · 非官方網站</span>
+  </footer>
+
+  <!-- 與首頁 index.html 完全相同的帳號服務彈窗 -->
+  <dialog id="event-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-content">
+      <button class="close-button" id="close-dialog" aria-label="關閉視窗">×</button>
+      <p id="dialog-category" class="eyebrow"></p>
+      <h2 id="dialog-title"></h2>
+      <div id="dialog-body"></div>
+    </div>
+  </dialog>
+</body>
+</html>

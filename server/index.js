@@ -26,7 +26,7 @@ app.use(express.json());
 
 // 僅提供明確列出的前端檔案，不公開專案根目錄或 server/.env。
 for (const file of ['index.html', 'styles.css', 'app.js', 'manager.html', 'manager.css',
-  'manager.js', 'auth-session.js', 'event-form.html', 'event-form.css', 'event-form.js']) {
+  'manager.js', 'auth-session.js', 'event-form.html', 'event-form.css', 'event-form.js','event-detail.html','event-detail.css','event-detail.js']) {
   app.get(file === 'index.html' ? ['/', '/index.html'] : `/${file}`, (req, res) => {
     res.sendFile(path.join(__dirname, '..', file));
   });
