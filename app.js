@@ -2,7 +2,7 @@
 // 若網頁是由後端提供，使用相對路徑；
 // 若用 Live Server 等其他埠開啟，則連到本機後端（後端需開啟 CORS）。
 // 後端埠號：本機後端使用 3000（8000 埠可能被其他程式占用）
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = window.NTOU_API_BASE;
 
 const PAGE_SIZE = 6;
 
@@ -163,7 +163,7 @@ function renderDialog(event) {
     event.title,
     info,
     element('p', 'dialog-description', event.description),
-    element('p', 'dialog-notice', '請先登入帳號以進行活動報名。')
+    registrationControl(event)
   );
 }
 
@@ -231,9 +231,27 @@ dialog.addEventListener('click', event => {
   }
 });
 
-document.querySelectorAll('[data-account]').forEach(button => button.addEventListener('click', () => {
-  openDialog('帳號服務', '登入與我的報名', element('p', 'dialog-description', '登入與報名功能將在後續階段開放。'));
+document.querySelectorAll('[data-my-registrations]').forEach(button=>button.addEventListener('click',()=>{
+  if(!NtouSession.getToken()){location.assign('login.html');return;}
+  openDialog('我的報名','我的報名頁面',element('p','','本頁尚未接入個人報名清單；請依小組其他任務提供的頁面查看。'));
 }));
+window.addEventListener('ntou:session-change',()=>{ if(dialog.open) dialog.close(); });
+function registrationControl(event) {
+  const wrap=element('div','dialog-notice');
+  const button=element('button','button','報名活動');button.type='button';
+  const feedback=element('p','');feedback.setAttribute('role','status');
+  button.addEventListener('click',async()=>{
+    if(!NtouSession.getToken()){location.assign('login.html?return='+encodeURIComponent('/index.html'));return;}
+    button.disabled=true;
+    await NtouAuth.refresh();const user=NtouAuth.getUser();
+    if(!user){feedback.textContent='請先確認登入狀態，稍後重試。';button.disabled=false;return;}
+    if(!user.email_verified){const link=element('a','','重新寄送驗證信');link.href='resend-verification.html';feedback.replaceChildren(document.createTextNode('請先完成校園 Email 驗證。'),link);button.disabled=false;return;}
+    const generation=NtouAuth.getGeneration();
+    try {const out=await NtouAuth.request(`/events/${encodeURIComponent(event.id)}/register`,{authenticated:true,body:{}});if(generation===NtouAuth.getGeneration())feedback.textContent=out.message || '報名成功';}
+    catch(e){if(generation!==NtouAuth.getGeneration())return;if(e.status===401)NtouSession.clear();feedback.textContent=e.message;if(e.status===403){const link=element('a','','重新寄送驗證信');link.href='resend-verification.html';feedback.append(link);}}
+    finally {button.disabled=false;}
+  });wrap.append(button,feedback);return wrap;
+}
 
 window.addEventListener('popstate', readUrl);
 readUrl();
