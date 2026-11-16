@@ -3,7 +3,7 @@ SELECT table_name, column_name, data_type, is_nullable
 FROM information_schema.columns
 WHERE table_schema='public'
  AND ((table_name='users' AND column_name IN ('email','email_verified_at'))
-   OR (table_name='events' AND column_name='manager_id')
+   OR (table_name='events' AND column_name IN ('manager_id','registration_opens_at','registration_closes_at','is_published'))
    OR table_name IN ('email_verification_tokens','email_verification_deliveries','email_verification_sources'))
 ORDER BY table_name, ordinal_position;
 SELECT tablename,indexname,indexdef FROM pg_indexes

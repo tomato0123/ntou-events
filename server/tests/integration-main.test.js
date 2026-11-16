@@ -46,7 +46,7 @@ test('同一 app：帳號驗證、原 JWT 報名、真實密碼登入後的歸�
 });
 test('同源自訂 PORT：首頁、帳號、管理資源及雙 API 名稱一致；私密檔案不可讀',async t=>{
  const {base}=await httpFixture(t);
- for(const file of ['index.html','login.html','register.html','verify-email.html','resend-verification.html','manager.html']){
+ for(const file of ['index.html','login.html','register.html','verify-email.html','resend-verification.html','manager.html','event-form.html']){
   const res=await fetch(base+'/'+file);assert.equal(res.status,200,file);const html=await res.text();
   for(const [,asset] of html.matchAll(/(?:src|href)="([^"#?]+\.(?:js|css))"/g))assert.equal((await fetch(base+'/'+asset)).status,200,asset);
  }
@@ -81,4 +81,27 @@ test('實際 CLI 啟動：server 安裝、測試 env-file、自訂 PORT 與 heal
   const base=match[0];assert.equal((await fetch(base+'/api/health')).status,200);
   const code=await (await fetch(base+'/api-config.js')).text();const context={window:{},location:new URL(base)};vm.runInNewContext(code,context);assert.equal(context.window.NtouConfig.apiBase,'/api');
  }finally{if(child.exitCode===null){child.kill();await new Promise(resolve=>child.once('exit',resolve));}fs.unlinkSync(envFile);fs.rmdirSync(dir);}
+});
+
+test('main UI-05 報名資格：未公開、缺期間、開放前／當下、截止當下與活動開始',async()=>{
+ const {registerForEvent}=require('../registration-service');
+ const base={id:101,is_published:true,registration_opens_at:'2030-01-01T00:00:00Z',registration_closes_at:'2030-01-02T00:00:00Z',starts_at:'2030-01-03T00:00:00Z'};
+ for(const [patch,time,expected] of [
+  [{is_published:false},'2030-01-01T12:00:00Z',404],
+  [{registration_opens_at:null},'2030-01-01T12:00:00Z',409],
+  [{},'2029-12-31T23:59:59Z',409],
+  [{},'2030-01-01T00:00:00Z',201],
+  [{},'2030-01-02T00:00:00Z',409],
+  [{},'2030-01-03T00:00:00Z',409]
+ ]){
+  const calls=[];const database={async connect(){return {release(){},async query(sql){calls.push(sql);
+   if(sql.includes('FROM users'))return {rows:[{email_verified_at:new Date()}]};
+   if(sql.includes('FROM events'))return {rows:[{...base,...patch}],rowCount:1};
+   if(sql.startsWith('INSERT'))return {rows:[{id:1,user_id:1,event_id:101,status:'registered'}]};
+   return {rows:[]};
+  }};}};
+  const operation=registerForEvent(1,101,database,()=>Date.parse(time));
+  if(expected===201){await operation;assert.ok(calls.includes('COMMIT'));}
+  else{await assert.rejects(operation,{statusCode:expected});assert.equal(calls.some(x=>x.startsWith('INSERT')),false);assert.ok(calls.includes('ROLLBACK'));}
+ }
 });

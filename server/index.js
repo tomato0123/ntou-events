@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('node:path');
 const {
   createEvent,
+  updateEvent,
   getAllEvents,
   getEventById
 } = require('./event-service');
@@ -34,7 +35,8 @@ app.use(express.json({limit:'16kb'}));
 // 合併 UI-03 與 UI-06 靜態白名單，沒有 repo-wide express.static。
 const publicFiles = ['index.html', 'styles.css', 'app.js', 'manager.html', 'manager.css',
   'manager.js', 'auth-session.js', 'auth-client.js', 'account.js', 'account.css',
-  'login.html', 'register.html', 'verify-email.html', 'resend-verification.html'];
+  'login.html', 'register.html', 'verify-email.html', 'resend-verification.html',
+  'event-form.html', 'event-form.css', 'event-form.js'];
 for (const file of publicFiles) {
   app.get(file === 'index.html' ? ['/', '/index.html'] : `/${file}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', file));
@@ -122,6 +124,30 @@ app.post(
     } catch (error) {
       const status = error.statusCode || 400;
       res.status(status).json({ error: error.message });
+    }
+  }
+);
+
+// 2.4 修改活動資訊 (UI-05: 需登入且 role 為 admin 或 event_manager)
+app.put(
+  '/api/events/:id',
+  authenticateToken,
+  requireRole(['admin', 'event_manager'], id => auth.me(id)),
+  async (req, res) => {
+    try {
+      // 與 US-08 相同的嚴格編號檢查：全為數字且在 PostgreSQL INTEGER 範圍內
+      const eventId = /^\d+$/.test(req.params.id) ? Number(req.params.id) : NaN;
+      if (!Number.isInteger(eventId) || eventId <= 0 || eventId > 2147483647) {
+        return res.status(400).json({ error: '活動編號必須為正整數' });
+      }
+      const updated = await updateEvent(eventId, req.body, req.user, database);
+      res.json({
+        message: '活動更新成功',
+        data: updated
+      });
+    } catch (error) {
+      const status = error.statusCode || 500;
+      res.status(status).json({ error: status === 500 ? '修改活動失敗' : error.message });
     }
   }
 );

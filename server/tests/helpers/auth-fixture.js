@@ -23,7 +23,7 @@ function fixture() {
   else if(sql.includes('FROM events') && sql.includes('ORDER BY starts_at')) rows=state.events.filter(e=>a || e.manager_id===b).sort((x,y)=>x.id-y.id);
   else if(sql.startsWith('SELECT id, title, manager_id FROM events')) rows=state.events.filter(e=>e.id===a);
   else if(sql.includes('LEFT JOIN users')) rows=state.registrations.filter(x=>x.event_id===a && (b==null || x.status===b)).map(x=>{const u=state.users.find(u=>u.id===x.user_id);return {...x,user_name:u.name,user_email:u.email,campus_identity:u.campus_identity,gender:u.gender};});
-  else if(sql.startsWith('SELECT * FROM events')) rows=[{id:a,starts_at:'2099-01-01T00:00:00Z'}];
+  else if(sql.startsWith('SELECT * FROM events')) rows=[{id:a,starts_at:'2099-01-01T00:00:00Z',registration_opens_at:'2000-01-01T00:00:00Z',registration_closes_at:'2098-12-31T00:00:00Z',is_published:true}];
   else if(sql.startsWith('INSERT INTO registrations')) {if(state.registrations.some(x=>x.user_id===a && x.event_id===b)) throw Object.assign(new Error(),{code:'23505'});const registration={id:state.registrations.length+1,user_id:a,event_id:b,status:'registered'};state.registrations.push(registration);rows=[registration];}
   else if(sql.includes('FROM users WHERE id=')) rows=state.users.filter(u=>u.id===a);
   else throw new Error(`Unexpected SQL ${sql}`);

@@ -13,6 +13,8 @@ const admin = { id: 30, role: 'admin' };
 const eventInput = {
   title: 'Ownership fixture', description: 'Test', location: 'Test room',
   starts_at: '2030-01-01T10:00:00Z', ends_at: '2030-01-01T12:00:00Z',
+  // UI-05 起報名期間為必填（SRD US-07）
+  registration_opens_at: '2029-12-01T00:00:00Z', registration_closes_at: '2029-12-31T00:00:00Z',
   manager_id: other.id
 };
 

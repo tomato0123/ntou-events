@@ -24,7 +24,7 @@ function registrationData(row) {
   };
 }
 
-async function registerForEvent(userId, eventId, database = pool) {
+async function registerForEvent(userId, eventId, database = pool, clock = Date.now) {
   const safeUserId = positiveInteger(userId, '使用者編號');
   const safeEventId = positiveInteger(eventId, '活動編號');
   const client = await database.connect();
@@ -42,10 +42,11 @@ async function registerForEvent(userId, eventId, database = pool) {
     }
 
     const event=eventResult.rows[0];
-    const now=Date.now();
-    if(event.is_published === false || event.is_public === false || event.status === 'draft') throw new RegistrationError(404,'找不到該活動');
-    const opens=event.registration_opens_at ?? event.registration_starts_at;
-    const closes=event.registration_closes_at ?? event.registration_ends_at;
+    const now=clock();
+    if(event.is_published !== true) throw new RegistrationError(404,'找不到該活動');
+    const opens=event.registration_opens_at;
+    const closes=event.registration_closes_at;
+    if(!opens || !closes) throw new RegistrationError(409,'活動尚未設定完整報名期間');
     if((opens && now < new Date(opens).getTime()) ||
        (closes && now >= new Date(closes).getTime()) ||
        (event.starts_at && now >= new Date(event.starts_at).getTime())) throw new RegistrationError(409,'目前不在報名期間');
