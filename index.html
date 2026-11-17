@@ -6,6 +6,7 @@
   <meta name="description" content="探索海大校園講座、社團與體育活動。">
   <title>活動探索｜海大活動報名系統</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="api-config.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -13,7 +14,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="index.html" aria-label="海大活動報名系統首頁"><span class="brand-mark" aria-hidden="true">海</span><span>海大活動報名系統<small>NTOU CAMPUS EVENTS</small></span></a>
-      <nav aria-label="主要導覽"><a class="nav-active" href="#events" aria-current="page">活動探索</a><button class="nav-button" data-account>我的報名</button></nav>
+      <nav aria-label="主要導覽"><a class="nav-active" href="#events" aria-current="page">活動探索</a><a href="manager.html">活動管理</a><button class="nav-button" data-account>我的報名</button></nav>
       <button class="button button-small" data-account>登入 <span aria-hidden="true">↗</span></button>
     </div>
   </header>
@@ -35,11 +36,11 @@
     </section>
     <section id="events" class="events-section" aria-labelledby="events-title">
       <div class="section-heading"><div><p class="eyebrow">DISCOVER ON CAMPUS</p><h2 id="events-title">探索校園活動</h2></div></div>
-      <!-- 分類篩選：資料庫目前沒有 category 欄位，待小組決定後再加回 -->
-      <div class="filter-row"><p class="sort-label">依活動時間・由近到遠</p></div>
+      <!-- 分類按鈕由 app.js 依 GET /api/categories 產生 -->
+      <div class="filter-row"><div id="category-filters" class="category-filters" role="group" aria-label="依分類篩選" hidden></div><p class="sort-label">依活動時間・由近到遠</p></div>
       <p id="result-count" class="result-count" role="status" aria-live="polite"></p>
       <div id="event-grid" class="event-grid"></div>
-      <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>找不到符合的活動</h3><p>試試其他關鍵字，或重新查看全部活動。</p><button id="clear-filters" class="button">清除搜尋</button></div>
+      <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>找不到符合的活動</h3><p>試試其他關鍵字或分類，或重新查看全部活動。</p><button id="clear-filters" class="button">清除篩選</button></div>
       <div class="load-more"><button id="load-more" class="button button-outline" hidden>載入更多活動 <span aria-hidden="true">↓</span></button></div>
       <aside class="campus-note"><span aria-hidden="true">◉</span><div><strong>把一點時間，留給校園生活。</strong><p>挑一場感興趣的活動，讓今天成為新的開始。</p></div><span class="note-signature">MEET. LEARN. EXPLORE.</span></aside>
     </section>

@@ -1,11 +1,6 @@
 // ===== 設定 =====
-// 若網頁是由後端提供，使用相對路徑；
-// 若用 Live Server 等其他埠開啟，則連到本機後端（後端需開啟 CORS）。
-// 後端埠號：本機後端使用 3000（8000 埠可能被其他程式占用）
-const BACKEND_PORT = '3000';
-const API_BASE = window.location.port === BACKEND_PORT
-  ? '/api'
-  : `http://localhost:${BACKEND_PORT}/api`;
+// API 位址由 api-config.js 提供（後端提供網頁時為同源 /api，Live Server 時連 127.0.0.1:8000）
+const API_BASE = window.NtouConfig.apiBase;
 
 // 分類清單由後端提供（GET /api/categories），前端不寫死，避免與後端規則不一致
 async function loadCategories() {
