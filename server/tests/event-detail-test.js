@@ -40,7 +40,7 @@ test('UI 靜態結構：event-detail.html 與 event-detail.css 具備線框圖�
   // 檢查共用模組載入順序
   assert.match(html, /<script src="api-config\.js" defer><\/script>/);
   assert.match(html, /<script src="auth-session\.js" defer><\/script>/);
-  assert.match(html, /<script src="event\.js" defer><\/script>/);
+  assert.match(html, /<script src="event-detail\.js" defer><\/script>/);
 
   // 檢查線框圖對應的關鍵 DOM ID
   for (const id of [

@@ -25,12 +25,20 @@ function eventTime(event) {
   return `${dateFormat.format(start)} ${timeFormat.format(start)}–${timeFormat.format(end)}`;
 }
 
-// 目前資料庫沒有報名期間與名額，狀態只依活動時間判斷
+// 依報名期間與活動時間判斷狀態
 function status(event) {
   const now = Date.now();
-  if (now >= new Date(event.ends_at).getTime()) return '已結束';
-  if (now >= new Date(event.starts_at).getTime()) return '進行中';
-  return '即將開始';
+  const closeTime = event.registration_closes_at
+    ? new Date(event.registration_closes_at).getTime()
+    : new Date(event.starts_at).getTime();
+
+  if (now >= new Date(event.ends_at).getTime()) return { text: '已結束', open: false };
+  if (now >= new Date(event.starts_at).getTime()) return { text: '進行中', open: false };
+  if (event.registration_opens_at && now < new Date(event.registration_opens_at).getTime()) {
+    return { text: '尚未開放報名', open: false };
+  }
+  if (now >= closeTime) return { text: '報名已截止', open: false };
+  return { text: '報名開放中', open: true };
 }
 
 function element(tag, className, text) {
@@ -46,9 +54,12 @@ function card(event) {
   const top = element('div', 'card-top');
 
   const currentStatus = status(event);
-  const isOpen = currentStatus === '即將開始';
   top.append(
-    element('span', `event-status${isOpen ? '' : ' closed'}`, `${isOpen ? '● ' : ''}${currentStatus}`)
+    element(
+      'span', 
+      `event-status${currentStatus.open ? '' : ' closed'}`, 
+      `${currentStatus.open ? '● ' : ''}${currentStatus.text}`
+    )
   );
 
   const meta = element('div', 'event-meta');
@@ -133,7 +144,7 @@ function render() {
   loadMore.hidden = state.visible >= total;
 }
 
-// ===== 活動詳情（呼叫 GET /api/events/{id}）=====
+// ===== 彈窗與頁面跳轉 =====
 function openDialog(category, title, ...bodyNodes) {
   document.querySelector('#dialog-category').textContent = category;
   document.querySelector('#dialog-title').textContent = title;
@@ -141,28 +152,6 @@ function openDialog(category, title, ...bodyNodes) {
   if (!dialog.open) dialog.showModal();
 }
 
-function renderDialog(event) {
-  const start = new Date(event.starts_at);
-  const info = element('dl');
-  const rows = [
-    ['日期時間', `${yearFormat.format(start)} / ${eventTime(event)}`],
-    ['活動地點', event.location]
-  ];
-  // 主辦單位目前資料庫沒有欄位，有資料時才顯示
-  if (event.organizer) rows.push(['主辦單位', event.organizer]);
-
-  for (const [label, value] of rows) {
-    info.append(element('dt', '', label), element('dd', '', value));
-  }
-
-  openDialog(
-    status(event),
-    event.title,
-    info,
-    element('p', 'dialog-description', event.description),
-    element('p', 'dialog-notice', '請先登入帳號以進行活動報名。')
-  );
-}
 
 function showEvent(id) {
   window.location.href = `event-detail.html?id=${encodeURIComponent(id)}`;
