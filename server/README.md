@@ -102,3 +102,25 @@ node --env-file=.env events-check.js
 ```powershell
 node --env-file=.env registrations-check.js
 ```
+
+---
+
+## UI-02:活動詳情與線上報名頁
+
+提供使用者查看單一活動完整資訊、報名期間與即時報名狀態，並可登入後進行線上報名。
+
+### 核心功能與串接端點
+- **單一活動詳情**：呼叫 `GET /api/events/:id` 取得活動資訊；若網址缺少 `id`、活動不存在或未公開則顯示錯誤提示。
+- **線上報名**：呼叫 `POST /api/events/:id/registrations`（需在 Header 帶入 `Authorization: Bearer <token>`），依報名起訖與活動時間自動判斷開放狀態並鎖定按鈕。
+- **前端預覽模式**：網址加上 `?mock=1`（例如 `/event-detail.html?mock=1`）可在未連線後端或資料庫無資料時預覽假資料 UI。
+
+### 相關檔案
+- 根目錄 `event-detail.html`、`event-detail.css`、`event-detail.js`：活動詳情與報名頁前端介面與互動邏輯。
+- `tests/event-detail-test.js`：前端 DOM 結構、單一活動查詢與報名狀態互動測試（使用記憶體資料與注入 pool，不連線真實資料庫）。
+
+### 執行活動詳情頁測試
+
+在 `server` 目錄下執行：
+
+```powershell
+node --test tests/event-detail-test.js
