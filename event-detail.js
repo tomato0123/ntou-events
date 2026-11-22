@@ -215,11 +215,18 @@
 
   async function init() {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id') || '1';
+    const id = params.get('id');
     const useMock = params.get('mock') === '1';
 
     if (useMock) {
       renderEvent(MOCK_EVENTS[id] || MOCK_EVENTS[1], true);
+      return;
+    }
+
+    if (!id) {
+      loadingEl.hidden = true;
+      errorTextEl.textContent = '缺少活動編號，請從活動列表重新選擇。';
+      errorEl.hidden = false;
       return;
     }
 
@@ -229,8 +236,10 @@
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       renderEvent(data, false);
     } catch (err) {
-      console.warn('後端或資料庫尚無此活動，自動切換為 Mock UI 預覽模式：', err.message);
-      renderEvent(MOCK_EVENTS[id] || MOCK_EVENTS[1], true);
+      console.error('載入活動詳情失敗：', err);
+      loadingEl.hidden = true;
+      errorTextEl.textContent = `無法載入活動資訊（${err.message}）。`;
+      errorEl.hidden = false;
     }
   }
 
